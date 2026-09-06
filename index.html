@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>POPEYE BURGERS | Peça Online</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #111;
+    color: #fff;
+}
+
+header {
+    background: linear-gradient(135deg, #111, #242424);
+    padding: 20px;
+    text-align: center;
+    border-bottom: 3px solid #e63946;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.logo {
+    font-size: 32px;
+    font-weight: bold;
+    color: #fff;
+}
+
+.logo span {
+    color: #e63946;
+}
+
+.subtitulo {
+    color: #aaa;
+    margin-top: 5px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 25px 15px 100px;
+}
+
+.hero {
+    background: linear-gradient(135deg, #e63946, #9d0208);
+    border-radius: 20px;
+    padding: 35px;
+    margin-bottom: 30px;
+}
+
+.hero h1 {
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+.hero p {
+    font-size: 18px;
+}
+
+.section-title {
+    margin: 35px 0 20px;
+    font-size: 25px;
+    border-left: 5px solid #e63946;
+    padding-left: 10px;
+}
+
+.produtos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+    gap: 20px;
+}
+
+.card {
+    background: #1c1c1c;
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid #333;
+    transition: 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    border-color: #e63946;
+}
+
+.card h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.card p {
+    color: #bbb;
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 65px;
+}
+
+.preco {
+    font-size: 22px;
+    font-weight: bold;
+    color: #ffd166;
+    margin: 15px 0;
+}
+
+button {
+    border: none;
+    cursor: pointer;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.btn-add {
+    width: 100%;
+    background: #e63946;
+    color: white;
+}
+
+.btn-add:hover {
+    background: #ff4d5a;
+}
+
+.carrinho-botao {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #e63946;
+    color: white;
+    padding: 16px 22px;
+    border-radius: 50px;
+    font-size: 17px;
+    z-index: 2000;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 3000;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+}
+
+.modal-content {
+    background: #1b1b1b;
+    width: 100%;
+    max-width: 600px;
+    border-radius: 20px;
+    padding: 25px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-content h2 {
+    margin-bottom: 20px;
+}
+
+.item-carrinho {
+    border-bottom: 1px solid #333;
+    padding: 15px 0;
+}
+
+.item-info {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.controles {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.btn-menor {
+    background: #333;
+    color: white;
+    padding: 7px 12px;
+}
+
+.btn-maior {
+    background: #e63946;
+    color: white;
+    padding: 7px 12px;
+}
+
+.total {
+    font-size: 24px;
+    margin: 25px 0;
+    font-weight: bold;
+}
+
+.finalizar {
+    width: 100%;
+    background: #25D366;
+    color: white;
+    font-size: 18px;
+}
+
+.fechar {
+    float: right;
+    background: #333;
+    color: white;
+    padding: 8px 12px;
+}
+
+footer {
+    text-align: center;
+    padding: 30px;
+    background: #080808;
+    color: #888;
+}
+
+.destaque {
+    color: #ffd166;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+@media(max-width:600px) {
+
+    .hero h1 {
+        font-size: 26px;
+    }
+
+    .hero {
+        padding: 25px;
+    }
+
+}
+</style>
+
+</head>
+
+<body>
+
+<header>
+    <div class="logo">POPEYE <span>BURGERS</span></div>
+    <div class="subtitulo">🔥 Seu hambúrguer favorito, onde você estiver.</div>
+</header>
+
+<div class="container">
+
+<div class="hero">
+    <h1>🍔 PEÇA ONLINE</h1>
+    <p>Monte seu pedido, escolha seus favoritos e finalize diretamente pelo WhatsApp.</p>
+</div>
+
+
+<h2 class="section-title">🥇 BURGERS</h2>
+
+<div class="produtos" id="burgers"></div>
+
+
+<h2 class="section-title">🍗 FRANGO</h2>
+
+<div class="produtos" id="frango"></div>
+
+
+<h2 class="section-title">🍟 PORÇÕES</h2>
+
+<div class="produtos" id="porcoes"></div>
+
+
+<h2 class="section-title">🥤 BEBIDAS</h2>
+
+<div class="produtos" id="bebidas"></div>
+
+
+<h2 class="section-title">🔥 COMBOS POPEYE</h2>
+
+<div class="produtos" id="combos"></div>
+
+
+<h2 class="section-title">🍫 SOBREMESAS</h2>
+
+<div class="produtos" id="sobremesas"></div>
+
+</div>
+
+
+<button class="carrinho-botao" onclick="abrirCarrinho()">
+🛒 Carrinho (<span id="contador">0</span>)
+</button>
+
+
+<div class="modal" id="modalCarrinho">
+
+<div class="modal-content">
+
+<button class="fechar" onclick="fecharCarrinho()">✕</button>
+
+<h2>🛒 Seu Pedido</h2>
+
+<div id="itensCarrinho"></div>
+
+<div class="total">
+Total: R$ <span id="total">0,00</span>
+</div>
+
+<button class="finalizar" onclick="finalizarPedido()">
+Finalizar pedido pelo WhatsApp
+</button>
+
+</div>
+
+</div>
+
+
+<footer>
+
+<h3>POPEYE BURGERS</h3>
+
+<p>Pedidos online • Rápido • Fácil • Gostoso 🍔</p>
+
+</footer>
+
+
+<script>
+
+const produtos = {
+
+burgers: [
+
+{
+nome:"POPEYE BURGER",
+preco:24.90,
+descricao:"Pão brioche, hambúrguer artesanal 120g, queijo cheddar, alface, tomate e molho especial."
+},
+
+{
+nome:"POPEYE BACON ⭐",
+preco:29.90,
+descricao:"Pão brioche, hambúrguer artesanal 120g, cheddar cremoso, bacon crocante, cebola caramelizada e molho da casa."
+},
+
+{
+nome:"POPEYE DUPLO 🔥",
+preco:34.90,
+descricao:"2 hambúrgueres artesanais de 120g, cheddar duplo, bacon e molho especial."
+},
+
+{
+nome:"POPEYE ONION",
+preco:31.90,
+descricao:"Hambúrguer artesanal, cheddar, onion rings, bacon e molho especial."
+},
+
+{
+nome:"POPEYE BBQ",
+preco:31.90,
+descricao:"Hambúrguer artesanal, cheddar, bacon, cebola crispy e molho barbecue."
+},
+
+{
+nome:"POPEYE MONSTER 👑",
+preco:39.90,
+descricao:"2 hambúrgueres de 120g, cheddar duplo, bacon, onion rings e cebola caramelizada."
+}
+
+],
+
+frango: [
+
+{
+nome:"POPEYE CHICKEN",
+preco:27.90,
+descricao:"Filé de frango empanado crocante, cheddar, alface, tomate e molho especial."
+},
+
+{
+nome:"POPEYE CHICKEN BACON 🔥",
+preco:32.90,
+descricao:"Frango crocante, cheddar, bacon, alface e molho especial."
+}
+
+],
+
+porcoes: [
+
+{
+nome:"Batata Frita P",
+preco:10.00,
+descricao:"Porção pequena de batata frita crocante."
+},
+
+{
+nome:"Batata Frita M",
+preco:15.00,
+descricao:"Porção média de batata frita crocante."
+},
+
+{
+nome:"Batata Frita G",
+preco:20.00,
+descricao:"Porção grande de batata frita crocante."
+},
+
+{
+nome:"Batata Cheddar & Bacon ⭐",
+preco:25.90,
+descricao:"Batata crocante, cheddar cremoso e bacon."
+},
+
+{
+nome:"Onion Rings",
+preco:22.90,
+descricao:"Deliciosas onion rings crocantes."
+},
+
+{
+nome:"Nuggets",
+preco:19.90,
+descricao:"10 unidades de nuggets."
+}
+
+],
+
+bebidas: [
+
+{
+nome:"Coca-Cola Lata 350ml",
+preco:6.00,
+descricao:"Refrigerante gelado."
+},
+
+{
+nome:"Guaraná Lata 350ml",
+preco:6.00,
+descricao:"Refrigerante gelado."
+},
+
+{
+nome:"Fanta Laranja Lata 350ml",
+preco:6.00,
+descricao:"Refrigerante gelado."
+},
+
+{
+nome:"Coca-Cola 1L",
+preco:10.00,
+descricao:"Garrafa de 1 litro."
+},
+
+{
+nome:"Guaraná 1L",
+preco:9.00,
+descricao:"Garrafa de 1 litro."
+},
+
+{
+nome:"Água 500ml",
+preco:4.00,
+descricao:"Água mineral."
+}
+
+],
+
+combos: [
+
+{
+nome:"COMBO POPEYE",
+preco:34.90,
+descricao:"Popeye Burger + Batata P + Refrigerante lata."
+},
+
+{
+nome:"COMBO BACON ⭐",
+preco:39.90,
+descricao:"Popeye Bacon + Batata P + Refrigerante lata."
+},
+
+{
+nome:"COMBO DUPLO",
+preco:44.90,
+descricao:"Popeye Duplo + Batata M + Refrigerante lata."
+},
+
+{
+nome:"COMBO MONSTER 👑",
+preco:49.90,
+descricao:"Popeye Monster + Batata M + Refrigerante lata."
+},
+
+{
+nome:"COMBO FAMÍLIA 👨‍👩‍👧‍👦",
+preco:89.90,
+descricao:"2 Popeye Bacon + 2 Popeye Burger + Batata G + Refrigerante 1L."
+}
+
+],
+
+sobremesas: [
+
+{
+nome:"Brownie com Nutella",
+preco:12.90,
+descricao:"Brownie delicioso com cobertura de Nutella."
+},
+
+{
+nome:"Brownie com Sorvete",
+preco:17.90,
+descricao:"Brownie servido com sorvete."
+},
+
+{
+nome:"Milk-shake Chocolate 400ml",
+preco:18.90,
+descricao:"Milk-shake cremoso de chocolate."
+},
+
+{
+nome:"Milk-shake Morango 400ml",
+preco:18.90,
+descricao:"Milk-shake cremoso de morango."
+}
+
+]
+
+};
+
+
+let carrinho = JSON.parse(localStorage.getItem("carrinhoPopeye")) || [];
+
+
+function renderProdutos() {
+
+for(let categoria in produtos){
+
+let area = document.getElementById(categoria);
+
+produtos[categoria].forEach((produto) => {
+
+area.innerHTML += `
+
+<div class="card">
+
+<h3>${produto.nome}</h3>
+
+<p>${produto.descricao}</p>
+
+<div class="preco">
+R$ ${produto.preco.toFixed(2).replace(".",",")}
+</div>
+
+<button class="btn-add"
+onclick="adicionarProduto('${produto.nome}', ${produto.preco})">
+
+➕ Adicionar
+
+</button>
+
+</div>
+
+`;
+
+});
+
+}
+
+}
+
+
+function adicionarProduto(nome, preco){
+
+let existente = carrinho.find(item => item.nome === nome);
+
+if(existente){
+
+existente.quantidade++;
+
+} else {
+
+carrinho.push({
+
+nome:nome,
+preco:preco,
+quantidade:1
+
+});
+
+}
+
+salvarCarrinho();
+
+atualizarContador();
+
+alert(nome + " adicionado ao carrinho!");
+
+}
+
+
+function salvarCarrinho(){
+
+localStorage.setItem(
+"carrinhoPopeye",
+JSON.stringify(carrinho)
+);
+
+}
+
+
+function atualizarContador(){
+
+let quantidade = carrinho.reduce(
+(total,item) => total + item.quantidade,
+0
+);
+
+document.getElementById("contador").innerText = quantidade;
+
+}
+
+
+function abrirCarrinho(){
+
+document.getElementById("modalCarrinho").style.display = "flex";
+
+renderCarrinho();
+
+}
+
+
+function fecharCarrinho(){
+
+document.getElementById("modalCarrinho").style.display = "none";
+
+}
+
+
+function renderCarrinho(){
+
+let area = document.getElementById("itensCarrinho");
+
+area.innerHTML = "";
+
+let total = 0;
+
+
+if(carrinho.length === 0){
+
+area.innerHTML = "<p>Seu carrinho está vazio 🍔</p>";
+
+}
+
+
+carrinho.forEach((item,index) => {
+
+let subtotal = item.preco * item.quantidade;
+
+total += subtotal;
+
+area.innerHTML += `
+
+<div class="item-carrinho">
+
+<div class="item-info">
+
+<strong>${item.nome}</strong>
+
+<strong>
+R$ ${subtotal.toFixed(2).replace(".",",")}
+</strong>
+
+</div>
+
+<div class="controles">
+
+<button class="btn-menor"
+onclick="diminuir(${index})">
+−
+</button>
+
+<strong>${item.quantidade}</strong>
+
+<button class="btn-maior"
+onclick="aumentar(${index})">
++
+</button>
+
+</div>
+
+</div>
+
+`;
+
+});
+
+
+document.getElementById("total").innerText =
+total.toFixed(2).replace(".",",");
+
+}
+
+
+function aumentar(index){
+
+carrinho[index].quantidade++;
+
+salvarCarrinho();
+
+renderCarrinho();
+
+atualizarContador();
+
+}
+
+
+function diminuir(index){
+
+carrinho[index].quantidade--;
+
+if(carrinho[index].quantidade <= 0){
+
+carrinho.splice(index,1);
+
+}
+
+salvarCarrinho();
+
+renderCarrinho();
+
+atualizarContador();
+
+}
+
+
+function finalizarPedido(){
+
+if(carrinho.length === 0){
+
+alert("Seu carrinho está vazio!");
+
+return;
+
+}
+
+
+let mensagem = "🍔 *NOVO PEDIDO - POPEYE BURGERS* 🍔%0A%0A";
+
+
+let total = 0;
+
+
+carrinho.forEach((item) => {
+
+let subtotal = item.preco * item.quantidade;
+
+total += subtotal;
+
+mensagem +=
+"• " +
+item.quantidade +
+"x " +
+item.nome +
+" - R$ " +
+subtotal.toFixed(2).replace(".",",") +
+"%0A";
+
+});
+
+
+mensagem +=
+"%0A💰 *TOTAL: R$ " +
+total.toFixed(2).replace(".",",") +
+"*";
+
+
+const telefone = "5511981877566";
+
+
+window.open(
+
+"https://wa.me/" +
+telefone +
+"?text=" +
+mensagem,
+
+"_blank"
+
+);
+
+}
+
+
+renderProdutos();
+
+atualizarContador();
+
+</script>
+
+</body>
+</html>

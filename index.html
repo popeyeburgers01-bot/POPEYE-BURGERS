@@ -4,30 +4,394 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>POPEYE BURGERS</title><style>
-d;inset:0;background:#000b;z-index:50;align-items:center;justify-content:center;padding:15px}.overlay.show{display:flex}.box{width:min(520px,100%);max-height:90vh;overflow:auto;background:#11161b;border:1px solid #39414a;border-radius:18px;padding:20px}.extra,.pay{display:flex;justify-content:space-between;align-items:center;padding:12px;border-bottom:1px solid #292f35}.extra input,.pay input{width:20px}.box input:not([type=checkbox]):not([type=radio]),.box textarea{width:100%;background:#0b0f13;color:#fff;border:1px solid #343c45;border-radius:9px;padding:11px}.t{display:block;font-weight:bold;margin:13px 0 6px}.actions{display:flex;gap:10px;margin-top:18px}.actions button{flex:1;padding:13px;border:0;border-radius:9px;font-weight:900}.ok{background:var(--r);color:#fff}.cancel{background:#252b31;color:#fff}.paygrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.pay{border:1px solid #343c45;border-radius:9px}.pay:has(input:checked){border-color:var(--g)}#panel{position:fixed;right:0;top:0;width:min(430px,100%);height:100vh;background:#0d1115;z-index:40;transform:translateX(105%);transition:.25s;padding:20px;display:flex;flex-direction:column}#panel.open{transform:none}#items{flex:1;overflow:auto}.item{padding:13px 0;border-bottom:1px solid #292f35}.qty button{background:#222a32;color:#fff;border:0;padding:5px 10px;margin:7px 5px 0 0;border-radius:5px}.total{font-size:21px;font-weight:900;padding:15px 0}.wa{background:#19b957;color:#fff;border:0;border-radius:9px;padding:15px;font-weight:900}footer{text-align:center;padding:25px;color:#929aa3;border-top:1px solid #222}@media(max-width:900px){nav{display:none}.grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:600px){.top{padding:7px 10px}.logo{height:48px}.hero{padding:0 10px}.heroimg{height:205px}main{padding:16px 10px}.grid{gap:9px}.pic{height:115px}.body{padding:9px}h3{font-size:13px}.desc{font-size:10px;min-height:58px}.price{font-size:17px}.add{font-size:11px}.paygrid{grid-template-columns:1fr 1fr}}
-@media(max-width:700px){.pic{height:210px}.body{min-height:190px}.grid{grid-template-columns:repeat(2,1fr)}.card h3{font-size:15px}.desc{font-size:12px;min-height:68px}.price{font-size:19px}}@media(max-width:430px){.grid{grid-template-columns:1fr}.pic{height:240px}}
+d;
+inset:0;
+background:#000b;
+z-index:50;
+align-items:center;
+justify-content:center;
+padding:15px}
+.overlay.show{
+  display:flex}
+  .box{
+    width:min(520px,100%);
+    max-height:90vh;
+    overflow:auto;
+    background:#11161b;
+    border:1px solid #39414a;
+    border-radius:18px;
+    padding:20px}
+    .extra,.pay{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:12px;
+      border-bottom:1px solid #292f35}
+      .extra input,.pay input{
+        width:20px}
+        .box input:not([type=checkbox]):not([type=radio]),.box textarea{
+          width:100%;
+          background:#0b0f13;
+          color:#fff;
+          border:1px solid #343c45;
+          border-radius:9px;
+          padding:11px}
+          .t{
+            display:block;
+            font-weight:bold;
+            margin:13px 0 6px}
+            .actions{
+              display:flex;
+              gap:10px;
+              margin-top:18px}
+              .actions button{
+                flex:1;
+                padding:13px;
+                border:0;
+                border-radius:9px;
+                font-weight:900}
+                .ok{
+                  background:var(--r);
+                  color:#fff}
+                  .cancel{
+                    background:#252b31;
+                    color:#fff}
+                    .paygrid{
+                      display:grid;
+                      grid-template-columns:1fr 1fr;
+                      gap:8px}
+                      .pay{
+                        border:1px solid #343c45;
+                        border-radius:9px}
+                        .pay:has(input:checked){
+                          border-color:var(--g)}
+                          #panel{
+                            position:fixed;
+                            right:0;
+                            top:0;
+                            width:min(430px,100%);
+                            height:100vh;
+                            background:#0d1115;
+                            z-index:40;
+                            transform:translateX(105%);
+                            transition:.25s;
+                            padding:20px;
+                            display:flex;
+                            flex-direction:column}
+                            #panel.open{
+                              transform:none}
+                              #items{
+                                flex:1;
+                                overflow:auto}
+                                .item{
+                                  padding:13px 0;
+                                  border-bottom:1px solid #292f35}
+                                  .qty button{
+                                    background:#222a32;
+                                    color:#fff;
+                                    border:0;
+                                    padding:5px 10px;
+                                    margin:7px 5px 0 0;
+                                    border-radius:5px}
+                                    .total{
+                                      font-size:21px;
+                                      font-weight:900;
+                                      padding:15px 0}
+                                      .wa{
+                                        background:#19b957;
+                                        color:#fff;
+                                        border:0;
+                                        border-radius:9px;
+                                        padding:15px;
+                                        font-weight:900}
+                                        footer{
+                                          text-align:center;
+                                          padding:25px;
+                                          color:#929aa3;
+                                          border-top:1px solid #222}
+                                          @media(max-width:900px){
+                                            nav{
+                                              display:none}
+                                              .grid{
+                                                grid-template-columns:repeat(2,1fr)}
+                                              }
+                                              @media(max-width:600px){
+                                                .top{
+                                                  padding:7px 10px}
+                                                  .logo{
+                                                    height:48px}
+                                                    .hero{
+                                                      padding:0 10px}
+                                                      .heroimg{
+                                                        height:205px}
+                                                        main{
+                                                          padding:16px 10px}
+                                                          .grid{
+                                                            gap:9px}
+                                                            .pic{
+                                                              height:115px}
+                                                              .body{
+                                                                padding:9px}
+                                                                h3{
+                                                                  font-size:13px}
+                                                                  .desc{
+                                                                    font-size:10px;
+                                                                    min-height:58px}
+                                                                    .price{
+                                                                      font-size:17px}
+                                                                      .add{
+                                                                        font-size:11px}
+                                                                        .paygrid{
+                                                                          grid-template-columns:1fr 1fr}
+                                                                        }
+                                                                        @media(max-width:700px){
+                                                                          .pic{
+                                                                            height:210px}
+                                                                            .body{
+                                                                              min-height:190px}
+                                                                              .grid{
+                                                                                grid-template-columns:repeat(2,1fr)}
+                                                                                .card h3{
+                                                                                  font-size:15px}
+                                                                                  .desc{
+                                                                                    font-size:12px;
+                                                                                    min-height:68px}
+                                                                                    .price{
+                                                                                      font-size:19px}
+                                                                                    }
+                                                                                    @media(max-width:430px){
+                                                                                      .grid{
+                                                                                        grid-template-columns:1fr}
+                                                                                        .pic{
+                                                                                          height:240px}
+                                                                                        }
 </style><style id="layout-ajuste">
-:root{--r:#ef1d26;--g:#ffc400;--bg:#050608;--panel:#111417;--line:#34383d}
-body{background:#050608;color:#fff;font-family:Arial,Helvetica,sans-serif;overflow-x:hidden}
-header{background:rgba(5,6,8,.97);border-bottom:1px solid #2b2b2b;box-shadow:0 5px 20px #000;}
-.top{max-width:1400px;padding:10px 24px;min-height:78px}
-.logo{height:58px;object-fit:contain}
-nav{gap:30px}nav a{font-size:13px;color:#eee;text-transform:uppercase}nav a:first-child{color:var(--r);position:relative}nav a:first-child:after{content:"";position:absolute;left:0;right:0;height:3px;background:var(--r);bottom:-12px;border-radius:4px}
-.cart{background:transparent;border:0;font-size:14px;padding:10px 0}.cart b{background:var(--r);padding:3px 7px;margin-left:3px}
-.hero{max-width:1400px;padding:0 24px}.heroimg{height:180px;background-position:center;background-size:cover;border-radius:0 0 18px 18px;box-shadow:inset 0 -80px 80px #000}
-#menu{max-width:1400px;margin:auto;padding:8px 24px 45px}
-.toolbar{display:flex;gap:10px;overflow-x:auto;padding:12px 0 18px;scrollbar-width:none}.toolbar::-webkit-scrollbar{display:none}.cat{background:#15181c;color:#fff;border:1px solid #34383d;border-radius:20px;padding:10px 18px;font-weight:700;white-space:nowrap}.cat.active{background:var(--r);border-color:var(--r)}
-section{margin:12px 0 36px}.title{font-size:34px;text-transform:uppercase;font-weight:900;margin:0 0 18px;padding:0 0 10px 0;position:relative;letter-spacing:-1px}.title:after{content:"";display:block;width:190px;height:5px;background:var(--r);transform:skewX(-25deg);margin-top:5px}
-.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:12px}
-.card{background:linear-gradient(180deg,#171a1d,#0c0e10);border:1px solid #3b3f43;border-radius:10px;overflow:hidden;box-shadow:0 8px 20px rgba(0,0,0,.4);transition:.2s}.card:hover{transform:translateY(-3px);border-color:#666}
-.pic{height:175px;background:#090a0c;overflow:hidden}.pic img{width:100%;height:100%;display:block;object-fit:cover}
-.body{padding:10px 10px 12px}.body h3{font-size:16px;line-height:1.1;margin:0 0 8px;font-weight:900}.price{font-size:22px;color:var(--g);font-weight:900;margin:0 0 7px}.desc{font-size:12px;line-height:1.35;color:#ddd;min-height:48px}.add{width:100%;margin-top:10px;border:0;background:var(--r);color:#fff;border-radius:7px;padding:10px 7px;font-weight:900;text-transform:uppercase;cursor:pointer}.add:hover{filter:brightness(1.12)}
-section:nth-of-type(2) .grid{grid-template-columns:repeat(3,minmax(0,1fr))}.section:nth-of-type(3) .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-section:nth-of-type(2) .card,section:nth-of-type(3) .card{display:grid;grid-template-columns:44% 56%;min-height:150px}.section:nth-of-type(2) .pic,section:nth-of-type(3) .pic{height:100%}
-section:nth-of-type(2) .body,section:nth-of-type(3) .body{display:flex;flex-direction:column;justify-content:center}.section:nth-of-type(2) .desc,section:nth-of-type(3) .desc{min-height:0}
-footer{background:#080909;border-top:1px solid #292929;padding:28px 24px;text-align:center;color:#ddd}
-@media(max-width:1100px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}.pic{height:165px}}
-@media(max-width:700px){.top{padding:8px 12px;min-height:64px}.logo{height:48px}nav{display:none}.hero{padding:0 10px}.heroimg{height:125px}#menu{padding:6px 10px 35px}.title{font-size:27px}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.pic{height:145px}.body{padding:8px}.body h3{font-size:14px}.price{font-size:19px}.desc{font-size:11px;min-height:58px}.add{font-size:11px;padding:9px 4px}section:nth-of-type(2) .grid,section:nth-of-type(3) .grid{grid-template-columns:1fr}section:nth-of-type(2) .card,section:nth-of-type(3) .card{grid-template-columns:42% 58%;min-height:135px}section:nth-of-type(2) .pic,section:nth-of-type(3) .pic{height:100%}.cart{font-size:12px}.heroimg{border-radius:0 0 12px 12px}}
+:root{
+  --r:#ef1d26;
+  --g:#ffc400;
+  --bg:#050608;
+  --panel:#111417;
+  --line:#34383d}
+  body{
+    background:#050608;
+    color:#fff;
+    font-family:Arial,Helvetica,sans-serif;
+    overflow-x:hidden}
+    header{
+      background:rgba(5,6,8,.97);
+      border-bottom:1px solid #2b2b2b;
+      box-shadow:0 5px 20px #000;
+    }
+    .top{
+      max-width:1400px;
+      padding:10px 24px;
+      min-height:78px}
+      .logo{
+        height:58px;
+        object-fit:contain}
+        nav{
+          gap:30px}
+          nav a{
+            font-size:13px;
+            color:#eee;
+            text-transform:uppercase}
+            nav a:first-child{
+              color:var(--r);
+              position:relative}
+              nav a:first-child:after{
+                content:"";
+                position:absolute;
+                left:0;
+                right:0;
+                height:3px;
+                background:var(--r);
+                bottom:-12px;
+                border-radius:4px}
+                .cart{
+                  background:transparent;
+                  border:0;
+                  font-size:14px;
+                  padding:10px 0}
+                  .cart b{
+                    background:var(--r);
+                    padding:3px 7px;
+                    margin-left:3px}
+                    .hero{
+                      max-width:1400px;
+                      padding:0 24px}
+                      .heroimg{
+                        height:180px;
+                        background-position:center;
+                        background-size:cover;
+                        border-radius:0 0 18px 18px;
+                        box-shadow:inset 0 -80px 80px #000}
+                        #menu{
+                          max-width:1400px;
+                          margin:auto;
+                          padding:8px 24px 45px}
+                          .toolbar{
+                            display:flex;
+                            gap:10px;
+                            overflow-x:auto;
+                            padding:12px 0 18px;
+                            scrollbar-width:none}
+                            .toolbar::-webkit-scrollbar{
+                              display:none}
+                              .cat{
+                                background:#15181c;
+                                color:#fff;
+                                border:1px solid #34383d;
+                                border-radius:20px;
+                                padding:10px 18px;
+                                font-weight:700;
+                                white-space:nowrap}
+                                .cat.active{
+                                  background:var(--r);
+                                  border-color:var(--r)}
+                                  section{
+                                    margin:12px 0 36px}
+                                    .title{
+                                      font-size:34px;
+                                      text-transform:uppercase;
+                                      font-weight:900;
+                                      margin:0 0 18px;
+                                      padding:0 0 10px 0;
+                                      position:relative;
+                                      letter-spacing:-1px}
+                                      .title:after{
+                                        content:"";
+                                        display:block;
+                                        width:190px;
+                                        height:5px;
+                                        background:var(--r);
+                                        transform:skewX(-25deg);
+                                        margin-top:5px}
+                                        .grid{
+                                          display:grid;
+                                          grid-template-columns:repeat(7,minmax(0,1fr));
+                                          gap:12px}
+                                          .card{
+                                            background:linear-gradient(180deg,#171a1d,#0c0e10);
+                                            border:1px solid #3b3f43;
+                                            border-radius:10px;
+                                            overflow:hidden;
+                                            box-shadow:0 8px 20px rgba(0,0,0,.4);
+                                            transition:.2s}
+                                            .card:hover{
+                                              transform:translateY(-3px);
+                                              border-color:#666}
+                                              .pic{
+                                                height:175px;
+                                                background:#090a0c;
+                                                overflow:hidden}
+                                                .pic img{
+                                                  width:100%;
+                                                  height:100%;
+                                                  display:block;
+                                                  object-fit:cover}
+                                                  .body{
+                                                    padding:10px 10px 12px}
+                                                    .body h3{
+                                                      font-size:16px;
+                                                      line-height:1.1;
+                                                      margin:0 0 8px;
+                                                      font-weight:900}
+                                                      .price{
+                                                        font-size:22px;
+                                                        color:var(--g);
+                                                        font-weight:900;
+                                                        margin:0 0 7px}
+                                                        .desc{
+                                                          font-size:12px;
+                                                          line-height:1.35;
+                                                          color:#ddd;
+                                                          min-height:48px}
+                                                          .add{
+                                                            width:100%;
+                                                            margin-top:10px;
+                                                            border:0;
+                                                            background:var(--r);
+                                                            color:#fff;
+                                                            border-radius:7px;
+                                                            padding:10px 7px;
+                                                            font-weight:900;
+                                                            text-transform:uppercase;
+                                                            cursor:pointer}
+                                                            .add:hover{
+                                                              filter:brightness(1.12)}
+                                                              section:nth-of-type(2) .grid{
+                                                                grid-template-columns:repeat(3,minmax(0,1fr))}
+                                                                .section:nth-of-type(3) .grid{
+                                                                  grid-template-columns:repeat(2,minmax(0,1fr))}
+                                                                  section:nth-of-type(2) .card,section:nth-of-type(3) .card{
+                                                                    display:grid;
+                                                                    grid-template-columns:44% 56%;
+                                                                    min-height:150px}
+                                                                    .section:nth-of-type(2) .pic,section:nth-of-type(3) .pic{
+                                                                      height:100%}
+                                                                      section:nth-of-type(2) .body,section:nth-of-type(3) .body{
+                                                                        display:flex;
+                                                                        flex-direction:column;
+                                                                        justify-content:center}
+                                                                        .section:nth-of-type(2) .desc,section:nth-of-type(3) .desc{
+                                                                          min-height:0}
+                                                                          footer{
+                                                                            background:#080909;
+                                                                            border-top:1px solid #292929;
+                                                                            padding:28px 24px;
+                                                                            text-align:center;
+                                                                            color:#ddd}
+                                                                            @media(max-width:1100px){
+                                                                              .grid{
+                                                                                grid-template-columns:repeat(4,minmax(0,1fr))}
+                                                                                .pic{
+                                                                                  height:165px}
+                                                                                }
+                                                                                @media(max-width:700px){
+                                                                                  .top{
+                                                                                    padding:8px 12px;
+                                                                                    min-height:64px}
+                                                                                    .logo{
+                                                                                      height:48px}
+                                                                                      nav{
+                                                                                        display:none}
+                                                                                        .hero{
+                                                                                          padding:0 10px}
+                                                                                          .heroimg{
+                                                                                            height:125px}
+                                                                                            #menu{
+                                                                                              padding:6px 10px 35px}
+                                                                                              .title{
+                                                                                                font-size:27px}
+                                                                                                .grid{
+                                                                                                  grid-template-columns:repeat(2,minmax(0,1fr));
+                                                                                                  gap:8px}
+                                                                                                  .pic{
+                                                                                                    height:145px}
+                                                                                                    .body{
+                                                                                                      padding:8px}
+                                                                                                      .body h3{
+                                                                                                        font-size:14px}
+                                                                                                        .price{
+                                                                                                          font-size:19px}
+                                                                                                          .desc{
+                                                                                                            font-size:11px;
+                                                                                                            min-height:58px}
+                                                                                                            .add{
+                                                                                                              font-size:11px;
+                                                                                                              padding:9px 4px}
+                                                                                                              section:nth-of-type(2) .grid,section:nth-of-type(3) .grid{
+                                                                                                                grid-template-columns:1fr}
+                                                                                                                section:nth-of-type(2) .card,section:nth-of-type(3) .card{
+                                                                                                                  grid-template-columns:42% 58%;
+                                                                                                                  min-height:135px}
+                                                                                                                  section:nth-of-type(2) .pic,section:nth-of-type(3) .pic{
+                                                                                                                    height:100%}
+                                                                                                                    .cart{
+                                                                                                                      font-size:12px}
+                                                                                                                      .heroimg{
+                                                                                                                        border-radius:0 0 12px 12px}
+                                                                                                                      }
 </style></head>
 <body>
 <header>

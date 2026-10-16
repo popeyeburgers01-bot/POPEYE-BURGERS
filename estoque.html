@@ -1,0 +1,153 @@
+<!doctype html><html lang="pt-BR"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Estoque — Popeye Burgers</title>
+<style>
+:root{--r:#f5222d;--g:#ffc400;--bg:#0b0d10;--card:#161a1f;--line:#262c33;--muted:#9aa3ab;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+header{padding:16px;position:sticky;top:0;background:var(--bg);z-index:5;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+header h1{margin:0;font-size:18px}
+header button{background:#2a2f36;color:#fff;border:0;border-radius:8px;padding:8px 12px;font-weight:700;font-size:12px}
+main{padding:14px;max-width:680px;margin:0 auto}
+.msg{text-align:center;color:var(--muted);padding:40px 20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px}
+.top .nome{font-weight:800;font-size:15px}
+.top .codigo{color:var(--muted);font-size:11px;font-family:monospace}
+.badge{font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.badge.ok{background:#10251a;color:#5fd587;border:1px solid #1f4a30}
+.badge.esg{background:#2a1214;color:#ff6b6b;border:1px solid #4a1f23}
+.qtd{font-size:28px;font-weight:900;color:var(--g);margin:6px 0 10px}
+.qtd small{font-size:13px;color:var(--muted);font-weight:600}
+.row{display:flex;gap:8px;margin-top:8px}
+.row input{flex:1;min-width:0;background:#0f1216;border:1px solid var(--line);color:#fff;border-radius:8px;padding:9px 10px;font-size:14px}
+.row button{background:#2a2f36;color:#fff;border:0;border-radius:8px;padding:9px 14px;font-weight:800;font-size:13px;white-space:nowrap}
+.row button.set{background:var(--r)}
+.row .lbl{font-size:11px;color:var(--muted);margin-bottom:4px;display:block}
+.pw{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;gap:14px;padding:20px}
+.pw input{width:100%;max-width:280px;background:#161a1f;border:1px solid var(--line);color:#fff;border-radius:10px;padding:13px;font-size:16px;text-align:center}
+.pw button{background:var(--r);color:#fff;border:0;border-radius:10px;padding:13px 24px;font-weight:900;width:100%;max-width:280px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1a1f26;border:1px solid var(--line);color:#fff;padding:10px 18px;border-radius:999px;font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:50}
+.toast.show{opacity:1}
+</style></head>
+<body>
+<div id="pwScreen" class="pw">
+  <div style="font-size:40px">🔒</div>
+  <h2 style="margin:0">Estoque — Popeye Burgers</h2>
+  <input type="password" id="pwInput" placeholder="Senha da equipe" autocomplete="off">
+  <button onclick="tryLogin()">Entrar</button>
+  <div id="pwErr" style="color:#ff6b6b;font-size:13px;display:none">Senha incorreta.</div>
+</div>
+
+<div id="app" style="display:none">
+  <header>
+    <h1>📦 Estoque</h1>
+    <button onclick="load()">↻ Atualizar</button>
+  </header>
+  <main id="list"><div class="msg">Carregando...</div></main>
+</div>
+<div id="toast" class="toast"></div>
+
+<script>
+const SUPA_URL="https://pwsherzzgfjxaoarapgf.supabase.co";
+const SUPA_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3c2hlcnp6Z2ZqeGFvYXJhcGdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5MzU4OTUsImV4cCI6MjEwNzUxMTg5NX0.dKIJUclhb5mk1EJK2526cbyhgenhP0Jk-V90GPk_kN8";
+const SENHA="estoque2026"; // troque aqui quando quiser mudar a senha da equipe
+const TABLE=encodeURIComponent("PLANILHA DE ESTOQUE");
+
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");clearTimeout(window.__tt);window.__tt=setTimeout(()=>t.classList.remove("show"),2200);}
+
+function tryLogin(){
+  const v=document.getElementById("pwInput").value;
+  if(v===SENHA){
+    sessionStorage.setItem("popeye_estoque_ok","1");
+    document.getElementById("pwScreen").style.display="none";
+    document.getElementById("app").style.display="block";
+    load();
+  }else{
+    document.getElementById("pwErr").style.display="block";
+  }
+}
+document.getElementById("pwInput").addEventListener("keydown",e=>{if(e.key==="Enter")tryLogin()});
+if(sessionStorage.getItem("popeye_estoque_ok")==="1"){
+  document.getElementById("pwScreen").style.display="none";
+  document.getElementById("app").style.display="block";
+}
+
+async function load(){
+  const list=document.getElementById("list");
+  list.innerHTML='<div class="msg">Carregando...</div>';
+  try{
+    const res=await fetch(SUPA_URL+"/rest/v1/"+TABLE+"?select=*&order=categoria,nome",{
+      headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY}
+    });
+    if(!res.ok)throw new Error("HTTP "+res.status);
+    const rows=await res.json();
+    render(rows);
+  }catch(e){
+    list.innerHTML='<div class="msg">Não consegui carregar o estoque.<br>Verifique a conexão e tente novamente.</div>';
+  }
+}
+
+function render(rows){
+  const list=document.getElementById("list");
+  if(!rows.length){list.innerHTML='<div class="msg">Nenhum item encontrado.</div>';return;}
+  list.innerHTML=rows.map(r=>{
+    const esgotado=(Number(r.estoque)<=0)||(r.ativo===false);
+    return `<div class="card" data-codigo="${r.codigo}">
+      <div class="top">
+        <div><div class="nome">${r.nome||""}</div><div class="codigo">${r.codigo} · ${r.categoria||""}</div></div>
+        <span class="badge ${esgotado?'esg':'ok'}">${esgotado?'ESGOTADO':'DISPONÍVEL'}</span>
+      </div>
+      <div class="qtd">${r.estoque ?? 0} <small>${r.unidade||""}</small></div>
+      <div>
+        <span class="lbl">Definir estoque (conferência semanal)</span>
+        <div class="row">
+          <input type="number" min="0" placeholder="Nova quantidade" id="set_${r.codigo}">
+          <button class="set" onclick="setEstoque('${r.codigo}')">Salvar</button>
+        </div>
+      </div>
+      <div>
+        <span class="lbl">Confirmar pedido (dar baixa)</span>
+        <div class="row">
+          <input type="number" min="0" placeholder="Qtd. vendida" id="baixa_${r.codigo}">
+          <button onclick="baixarEstoque('${r.codigo}')">Confirmar</button>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+async function rpc(fn,body){
+  const res=await fetch(SUPA_URL+"/rest/v1/rpc/"+fn,{
+    method:"POST",
+    headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY,"Content-Type":"application/json"},
+    body:JSON.stringify(body)
+  });
+  if(!res.ok){const t=await res.text();throw new Error(t);}
+  return res.json();
+}
+
+async function setEstoque(codigo){
+  const input=document.getElementById("set_"+codigo);
+  const v=input.value;
+  if(v===""||Number(v)<0){toast("Informe uma quantidade válida.");return;}
+  try{
+    await rpc("popeye_set_estoque",{p_codigo:codigo,p_quantidade:Number(v)});
+    toast("Estoque atualizado.");
+    load();
+  }catch(e){toast("Erro ao salvar. Tente de novo.");}
+}
+
+async function baixarEstoque(codigo){
+  const input=document.getElementById("baixa_"+codigo);
+  const v=input.value;
+  if(v===""||Number(v)<=0){toast("Informe a quantidade vendida.");return;}
+  try{
+    await rpc("popeye_baixar_estoque",{p_codigo:codigo,p_qtd:Number(v)});
+    toast("Baixa confirmada.");
+    load();
+  }catch(e){toast("Erro ao confirmar. Tente de novo.");}
+}
+</script>
+</body></html>

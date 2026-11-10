@@ -52,27 +52,29 @@ main{padding:14px;max-width:680px;margin:0 auto}
 <script>
 const SUPA_URL="https://pwsherzzgfjxaoarapgf.supabase.co";
 const SUPA_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3c2hlcnp6Z2ZqeGFvYXJhcGdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5MzU4OTUsImV4cCI6MjEwNzUxMTg5NX0.dKIJUclhb5mk1EJK2526cbyhgenhP0Jk-V90GPk_kN8";
-const SENHA="estoque2026"; // troque aqui quando quiser mudar a senha da equipe
+let SENHA=""; // a senha da equipe é digitada na entrada e conferida no servidor
 const TABLE=encodeURIComponent("PLANILHA DE ESTOQUE");
 
 function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");clearTimeout(window.__tt);window.__tt=setTimeout(()=>t.classList.remove("show"),2200);}
 
-function tryLogin(){
+async function tryLogin(){
   const v=document.getElementById("pwInput").value;
-  if(v===SENHA){
-    sessionStorage.setItem("popeye_estoque_ok","1");
+  try{
+    await rpc("popeye_listar_pedidos",{p_senha:v,p_dias:1}); // só confere a senha
+    SENHA=v;
+    try{sessionStorage.setItem("popeye_estoque_pw",v)}catch(e){}
     document.getElementById("pwScreen").style.display="none";
     document.getElementById("app").style.display="block";
     load();
-  }else{
+  }catch(e){
     document.getElementById("pwErr").style.display="block";
   }
 }
 document.getElementById("pwInput").addEventListener("keydown",e=>{if(e.key==="Enter")tryLogin()});
-if(sessionStorage.getItem("popeye_estoque_ok")==="1"){
-  document.getElementById("pwScreen").style.display="none";
-  document.getElementById("app").style.display="block";
-}
+try{
+  const sv=sessionStorage.getItem("popeye_estoque_pw");
+  if(sv){SENHA=sv;document.getElementById("pwScreen").style.display="none";document.getElementById("app").style.display="block";}
+}catch(e){}
 
 async function load(){
   const list=document.getElementById("list");
@@ -133,10 +135,10 @@ async function setEstoque(codigo){
   const v=input.value;
   if(v===""||Number(v)<0){toast("Informe uma quantidade válida.");return;}
   try{
-    await rpc("popeye_set_estoque",{p_codigo:codigo,p_quantidade:Number(v)});
+    await rpc("popeye_set_estoque",{p_senha:SENHA,p_codigo:codigo,p_quantidade:Number(v)});
     toast("Estoque atualizado.");
     load();
-  }catch(e){toast("Erro ao salvar. Tente de novo.");}
+  }catch(e){if(/senha/i.test(e.message)){try{sessionStorage.removeItem("popeye_estoque_pw")}catch(_){}location.reload();return}toast("Erro ao salvar. Tente de novo.");}
 }
 
 async function baixarEstoque(codigo){
@@ -144,10 +146,10 @@ async function baixarEstoque(codigo){
   const v=input.value;
   if(v===""||Number(v)<=0){toast("Informe a quantidade vendida.");return;}
   try{
-    await rpc("popeye_baixar_estoque",{p_codigo:codigo,p_qtd:Number(v)});
+    await rpc("popeye_baixar_estoque",{p_senha:SENHA,p_codigo:codigo,p_qtd:Number(v)});
     toast("Baixa confirmada.");
     load();
-  }catch(e){toast("Erro ao confirmar. Tente de novo.");}
+  }catch(e){if(/senha/i.test(e.message)){try{sessionStorage.removeItem("popeye_estoque_pw")}catch(_){}location.reload();return}toast("Erro ao confirmar. Tente de novo.");}
 }
 </script>
 </body></html>

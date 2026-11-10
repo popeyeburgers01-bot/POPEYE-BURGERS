@@ -1,1 +1,148 @@
+<!doctype html><html lang="pt-BR"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pedidos — Popeye Burgers</title>
+<style>
+:root{--r:#f5222d;--g:#ffc400;--bg:#0b0d10;--card:#161a1f;--line:#262c33;--muted:#9aa3ab;--ok:#5fd587}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;padding-top:env(safe-area-inset-top,0px)}
+header{padding:14px 16px;position:sticky;top:0;background:var(--bg);z-index:5;border-bottom:1px solid var(--line)}
+.hrow{display:flex;justify-content:space-between;align-items:center;gap:8px}
+header h1{margin:0;font-size:18px}
+.btn{background:#2a2f36;color:#fff;border:0;border-radius:8px;padding:9px 12px;font-weight:800;font-size:13px}
+.tabs{display:flex;gap:6px;margin-top:10px;overflow-x:auto}
+.tab{flex:1;min-width:90px;background:#1a1f26;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:8px 10px;font-weight:800;font-size:12px;white-space:nowrap}
+.tab.on{background:var(--r);border-color:var(--r);color:#fff}
+.tab b{margin-left:4px}
+main{padding:14px;max-width:680px;margin:0 auto}
+.msg{text-align:center;color:var(--muted);padding:40px 20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+.card.aguardando_pagamento{border-color:#6b5300}
+.card.pago{border-color:#1f4a30}
+.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:8px}.top>div{min-width:0;overflow-wrap:anywhere}
+.num{font-weight:900;font-size:17px}
+.sub{color:var(--muted);font-size:12px;margin-top:2px}
+.badge{font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.badge.aguardando_pagamento{background:#2a2200;color:var(--g);border:1px solid #6b5300}
+.badge.pago{background:#10251a;color:var(--ok);border:1px solid #1f4a30}
+.badge.entregue{background:#1a1f26;color:var(--muted);border:1px solid var(--line)}
+.badge.cancelado{background:#2a1214;color:#ff6b6b;border:1px solid #4a1f23}
+.total{font-size:24px;font-weight:900;color:var(--g);margin:8px 0}
+.itens{font-size:13px;line-height:1.5;border-top:1px solid var(--line);padding-top:8px;margin-top:6px}
+.itens small{color:var(--muted);display:block;margin-left:12px}
+.end{font-size:13px;color:#cfd5da;margin-top:8px;line-height:1.4}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.acts .btn{flex:1;min-width:120px;padding:11px 12px}
+.btn.pay{background:#1f7a3f}.btn.del{background:#2358a8}.btn.cx{background:#4a1f23;color:#ff9a9a}
+.pw{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;gap:14px;padding:20px}
+.pw input{width:100%;max-width:280px;background:#161a1f;border:1px solid var(--line);color:#fff;border-radius:10px;padding:13px;font-size:16px;text-align:center}
+.pw .btn{background:var(--r);width:100%;max-width:280px;padding:13px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1a1f26;border:1px solid var(--line);padding:10px 18px;border-radius:999px;font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:50}
+.toast.show{opacity:1}
+.live{font-size:11px;color:var(--muted)}
+</style></head><body>
+<div id="pwScreen" class="pw">
+  <div style="font-size:40px">🧾</div>
+  <h2 style="margin:0">Pedidos — Popeye Burgers</h2>
+  <input type="password" id="pwInput" placeholder="Senha da equipe" autocomplete="off">
+  <button class="btn" onclick="login()">Entrar</button>
+  <div id="pwErr" style="color:#ff6b6b;font-size:13px;display:none">Senha incorreta.</div>
+</div>
+
+<div id="app" style="display:none">
+  <header>
+    <div class="hrow"><h1>🧾 Pedidos</h1>
+      <div style="display:flex;gap:6px;align-items:center"><span class="live" id="live"></span>
+      <button class="btn" onclick="load(true)">↻</button><button class="btn" onclick="logout()">Sair</button></div></div>
+    <div class="tabs" id="tabs"></div>
+  </header>
+  <main id="list"><div class="msg">Carregando...</div></main>
+</div>
+<div id="toast" class="toast"></div>
+
+<script>
+const URL_="https://pwsherzzgfjxaoarapgf.supabase.co/rest/v1/rpc/";
+const KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3c2hlcnp6Z2ZqeGFvYXJhcGdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5MzU4OTUsImV4cCI6MjEwNzUxMTg5NX0.dKIJUclhb5mk1EJK2526cbyhgenhP0Jk-V90GPk_kN8";
+let SENHA="", rows=[], tab="aguardando_pagamento", vistos=null, timer=null;
+const TABS=[["aguardando_pagamento","Aguardando"],["pago","Pagos"],["entregue","Entregues"],["todos","Todos"]];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const brl=v=>"R$ "+Number(v||0).toFixed(2).replace(".",",");
+function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(window.__t);window.__t=setTimeout(()=>t.classList.remove("show"),2200)}
+
+async function rpc(fn,body){
+  const r=await fetch(URL_+fn,{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"Content-Type":"application/json"},body:JSON.stringify(body)});
+  if(!r.ok){const t=await r.text();throw new Error(t)}
+  return r.json();
+}
+function entrar(){$("pwScreen").style.display="none";$("app").style.display="block";load(true);clearInterval(timer);timer=setInterval(()=>load(false),15000)}
+async function login(){
+  const v=$("pwInput").value;
+  try{await rpc("popeye_listar_pedidos",{p_senha:v,p_dias:1});SENHA=v;try{sessionStorage.setItem("pp",v)}catch(e){}entrar()}
+  catch(e){$("pwErr").style.display="block"}
+}
+$("pwInput").addEventListener("keydown",e=>{if(e.key==="Enter")login()});
+function logout(){try{sessionStorage.removeItem("pp")}catch(e){}location.reload()}
+try{const v=sessionStorage.getItem("pp");if(v){SENHA=v;entrar()}}catch(e){}
+
+function beep(){try{const a=new (window.AudioContext||window.webkitAudioContext)();[0,.25,.5].forEach(t=>{const o=a.createOscillator(),g=a.createGain();o.frequency.value=880;o.connect(g);g.connect(a.destination);g.gain.setValueAtTime(.2,a.currentTime+t);o.start(a.currentTime+t);o.stop(a.currentTime+t+.18)});if(navigator.vibrate)navigator.vibrate([200,100,200])}catch(e){}}
+
+async function load(manual){
+  try{
+    const data=await rpc("popeye_listar_pedidos",{p_senha:SENHA,p_dias:2});
+    const novos=vistos?data.filter(p=>!vistos.has(p.id)&&p.status==="aguardando_pagamento"):[];
+    vistos=new Set(data.map(p=>p.id));
+    rows=data; render();
+    $("live").textContent="atualizado "+new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+    if(novos.length){beep();toast("🔔 Novo pedido: nº "+novos[0].numero)}
+  }catch(e){
+    if(/senha/i.test(e.message)){logout();return}
+    $("live").textContent="sem conexão";
+    if(manual)toast("Não consegui atualizar.");
+  }
+}
+function count(s){return s==="todos"?rows.length:rows.filter(r=>r.status===s).length}
+function render(){
+  $("tabs").innerHTML=TABS.map(([k,n])=>`<button class="tab ${k===tab?"on":""}" onclick="setTab('${k}')">${n}<b>${count(k)}</b></button>`).join("");
+  const l=tab==="todos"?rows:rows.filter(r=>r.status===tab);
+  if(!l.length){$("list").innerHTML='<div class="msg">Nenhum pedido aqui.</div>';return}
+  $("list").innerHTML=l.map(card).join("");
+}
+function setTab(k){tab=k;render()}
+const NOME={aguardando_pagamento:"AGUARDANDO PAGAMENTO",pago:"PAGO",entregue:"ENTREGUE",cancelado:"CANCELADO"};
+function card(p){
+  const hora=new Date(p.criado_em).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+  const itens=(p.itens||[]).map(i=>{
+    let x=`<div>• ${esc(i.qtd)}x ${esc(i.nome)} — ${brl(i.preco*i.qtd)}`;
+    const ad=(i.adicionais||[]).map(a=>esc(a[0])).join(", ");
+    if(ad)x+=`<small>Adicionais: ${ad}</small>`;
+    if(Array.isArray(i.acompanha))x+=`<small>Acompanha: ${i.acompanha.length?i.acompanha.map(esc).join(", "):"nenhum"}</small>`;
+    if((i.sem||[]).length)x+=`<small>Sem: ${i.sem.map(esc).join(", ")}</small>`;
+    if(i.obs)x+=`<small>Obs.: ${esc(i.obs)}</small>`;
+    return x+"</div>"}).join("");
+  const acts=[];
+  if(p.status==="aguardando_pagamento"){acts.push(`<button class="btn pay" onclick="mudar('${p.id}','pago')">✅ Confirmar pagamento</button>`,`<button class="btn cx" onclick="cancelar('${p.id}')">Cancelar</button>`)}
+  if(p.status==="pago"){acts.push(`<button class="btn del" onclick="mudar('${p.id}','entregue')">🛵 Marcar entregue</button>`,`<button class="btn" onclick="mudar('${p.id}','aguardando_pagamento')">↩ Voltar p/ aguardando</button>`)}
+  if(p.status==="entregue"||p.status==="cancelado")acts.push(`<button class="btn" onclick="mudar('${p.id}','aguardando_pagamento')">↩ Reabrir</button>`);
+  acts.push(`<button class="btn" onclick="copiar('${p.id}')">📋 Copiar via delivery</button>`);
+  return `<div class="card ${p.status}">
+    <div class="top"><div><div class="num">Nº ${esc(p.numero)} · ${esc(p.cliente)}</div><div class="sub">${hora} · ${esc(p.pagamento||"")}</div></div>
+    <span class="badge ${p.status}">${NOME[p.status]}</span></div>
+    <div class="total">${brl(p.total)}</div>
+    <div class="itens">${itens}</div>
+    <div class="end">📍 ${esc(p.endereco)}, ${esc(p.numero_casa)} — ${esc(p.bairro)}${p.referencia?" · Ref.: "+esc(p.referencia):""}<br>CEP ${esc(p.cep)}${p.taxa_entrega>0?" · Entrega "+brl(p.taxa_entrega):" · Entrega grátis"}${p.desconto>0?" · Cupom −"+brl(p.desconto):""}</div>
+    ${p.observacao?`<div class="end">📝 ${esc(p.observacao)}</div>`:""}
+    <div class="acts">${acts.join("")}</div></div>`;
+}
+async function mudar(id,st){
+  try{await rpc("popeye_mudar_status",{p_senha:SENHA,p_id:id,p_status:st});toast(st==="pago"?"Pagamento confirmado ✅":"Atualizado");load(false)}
+  catch(e){toast("Erro ao atualizar. Tente de novo.")}
+}
+function cancelar(id){if(confirm("Cancelar este pedido?"))mudar(id,"cancelado")}
+function copiar(id){
+  const p=rows.find(r=>r.id===id);if(!p)return;
+  const lbl={aguardando_pagamento:"🟡 *Status:* AGUARDANDO PAGAMENTO",pago:"🟢 *Status:* PAGO",entregue:"🟢 *Status:* ENTREGUE",cancelado:"🔴 *Status:* CANCELADO"}[p.status];
+  const t=(p.texto_delivery||"").replace("🟡 *Status:* AGUARDANDO PAGAMENTO",lbl);
+  (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast("Copiado")).catch(()=>toast("Não foi possível copiar"));
+}
+</script></body></html>
 

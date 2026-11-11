@@ -39,6 +39,11 @@ main{padding:14px;max-width:680px;margin:0 auto}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1a1f26;border:1px solid var(--line);padding:10px 18px;border-radius:999px;font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:50}
 .toast.show{opacity:1}
 .live{font-size:11px;color:var(--muted)}
+.loja{margin-top:10px;display:flex;align-items:center;justify-content:space-between;gap:8px;background:#1a1f26;border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.loja .st{font-size:13px;font-weight:800}.loja .st small{display:block;color:var(--muted);font-weight:600;font-size:11px}
+.loja .st.on{color:var(--ok)}.loja .st.off{color:#ff6b6b}
+.seg{display:flex;gap:4px}.seg button{background:#2a2f36;color:#cfd5da;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-weight:800;font-size:12px}
+.seg button.on{background:var(--r);border-color:var(--r);color:#fff}
 </style></head><body>
 <div id="pwScreen" class="pw">
   <div style="font-size:40px">🧾</div>
@@ -54,6 +59,7 @@ main{padding:14px;max-width:680px;margin:0 auto}
       <div style="display:flex;gap:6px;align-items:center"><span class="live" id="live"></span>
       <button class="btn" onclick="load(true)">↻</button><button class="btn" onclick="logout()">Sair</button></div></div>
     <div class="tabs" id="tabs"></div>
+    <div class="loja"><div class="st" id="lojaSt">Loja…</div><div class="seg" id="lojaSeg"></div></div>
   </header>
   <main id="list"><div class="msg">Carregando...</div></main>
 </div>
@@ -74,13 +80,42 @@ async function rpc(fn,body){
   if(!r.ok){const t=await r.text();throw new Error(t)}
   return r.json();
 }
-function entrar(){$("pwScreen").style.display="none";$("app").style.display="block";load(true);clearInterval(timer);timer=setInterval(()=>load(false),15000)}
+function entrar(){$("pwScreen").style.display="none";$("app").style.display="block";load(true);loadLoja();clearInterval(timer);timer=setInterval(()=>{load(false);loadLoja()},15000)}
 async function login(){
   const v=$("pwInput").value;
   try{await rpc("popeye_listar_pedidos",{p_senha:v,p_dias:1});SENHA=v;try{sessionStorage.setItem("pp",v)}catch(e){}entrar()}
   catch(e){$("pwErr").style.display="block"}
 }
 $("pwInput").addEventListener("keydown",e=>{if(e.key==="Enter")login()});
+const DIAS=["domingo","segunda-feira","terça-feira","quarta-feira","quinta-feira","sexta-feira","sábado"],CURTO=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+let LOJA=null;
+const fh=h=>(h%24)+"h";
+function lojaAberta(L){
+  if(L.modo==="aberto")return true;if(L.modo==="fechado")return false;
+  const h=L.horarios[L.dow];return !!h&&L.minutos>=h[0]*60&&L.minutos<h[1]*60;
+}
+function lojaProxima(L){
+  for(let k=0;k<=7;k++){const d=(L.dow+k)%7,h=L.horarios[d];if(!h)continue;if(k===0&&L.minutos>=h[0]*60)continue;
+    return(k===0?"hoje":k===1?"amanhã":DIAS[d])+" às "+fh(h[0])}return"";
+}
+function renderLoja(){
+  if(!LOJA)return;
+  const ab=lojaAberta(LOJA),el=document.getElementById("lojaSt");
+  const modoTxt={auto:"Automática (pelo horário)",aberto:"Aberta manualmente",fechado:"Fechada manualmente"}[LOJA.modo];
+  el.className="st "+(ab?"on":"off");
+  el.innerHTML=(ab?"🟢 Loja ABERTA":"🔒 Loja FECHADA")+"<small>"+modoTxt+(LOJA.modo==="auto"&&!ab&&lojaProxima(LOJA)?" · abre "+lojaProxima(LOJA):"")+"</small>";
+  document.getElementById("lojaSeg").innerHTML=[["auto","Auto"],["aberto","Abrir"],["fechado","Fechar"]].map(([m,n])=>`<button class="${LOJA.modo===m?"on":""}" onclick="setLoja('${m}')">${n}</button>`).join("");
+}
+async function loadLoja(){
+  try{const r=await fetch(URL_+"popeye_loja_status",{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"Content-Type":"application/json"},body:"{}"});
+    if(r.ok){LOJA=await r.json();renderLoja()}}catch(e){}
+}
+async function setLoja(m){
+  if(m==="fechado"&&!confirm("Fechar a loja agora? Os clientes não conseguirão fazer pedidos."))return;
+  if(m==="aberto"&&!confirm("Abrir a loja agora, mesmo fora do horário?"))return;
+  try{LOJA=await rpc("popeye_set_loja",{p_senha:SENHA,p_modo:m});renderLoja();toast(m==="auto"?"Loja no modo automático":m==="aberto"?"Loja ABERTA":"Loja FECHADA")}
+  catch(e){toast("Erro ao alterar. Tente de novo.")}
+}
 function logout(){try{sessionStorage.removeItem("pp")}catch(e){}location.reload()}
 try{const v=sessionStorage.getItem("pp");if(v){SENHA=v;entrar()}}catch(e){}
 
@@ -145,4 +180,3 @@ function copiar(id){
   (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast("Copiado")).catch(()=>toast("Não foi possível copiar"));
 }
 </script></body></html>
-

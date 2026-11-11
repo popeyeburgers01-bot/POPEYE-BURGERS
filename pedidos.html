@@ -69,7 +69,7 @@ main{padding:14px;max-width:680px;margin:0 auto}
 const URL_="https://pwsherzzgfjxaoarapgf.supabase.co/rest/v1/rpc/";
 const KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3c2hlcnp6Z2ZqeGFvYXJhcGdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5MzU4OTUsImV4cCI6MjEwNzUxMTg5NX0.dKIJUclhb5mk1EJK2526cbyhgenhP0Jk-V90GPk_kN8";
 let SENHA="", rows=[], tab="aguardando_pagamento", vistos=null, timer=null;
-const TABS=[["aguardando_pagamento","Aguardando"],["pago","Pagos"],["entregue","Entregues"],["todos","Todos"]];
+const TABS=[["aguardando_pagamento","Aguardando"],["pago","Pagos"],["entregue","Entregues"],["cancelado","Cancelados"],["todos","Todos"]];
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const brl=v=>"R$ "+Number(v||0).toFixed(2).replace(".",",");
@@ -123,7 +123,7 @@ function beep(){try{const a=new (window.AudioContext||window.webkitAudioContext)
 
 async function load(manual){
   try{
-    const data=await rpc("popeye_listar_pedidos",{p_senha:SENHA,p_dias:2});
+    const data=await rpc("popeye_listar_pedidos",{p_senha:SENHA,p_dias:7});
     const novos=vistos?data.filter(p=>!vistos.has(p.id)&&p.status==="aguardando_pagamento"):[];
     vistos=new Set(data.map(p=>p.id));
     rows=data; render();
@@ -135,12 +135,13 @@ async function load(manual){
     if(manual)toast("Não consegui atualizar.");
   }
 }
-function count(s){return s==="todos"?rows.length:rows.filter(r=>r.status===s).length}
+function count(s){return s==="todos"?rows.filter(r=>r.status!=="cancelado").length:rows.filter(r=>r.status===s).length}
 function render(){
   $("tabs").innerHTML=TABS.map(([k,n])=>`<button class="tab ${k===tab?"on":""}" onclick="setTab('${k}')">${n}<b>${count(k)}</b></button>`).join("");
-  const l=tab==="todos"?rows:rows.filter(r=>r.status===tab);
-  if(!l.length){$("list").innerHTML='<div class="msg">Nenhum pedido aqui.</div>';return}
-  $("list").innerHTML=l.map(card).join("");
+  const l=tab==="todos"?rows.filter(r=>r.status!=="cancelado"):rows.filter(r=>r.status===tab);
+  if(!l.length){$("list").innerHTML='<div class="msg">'+(tab==="cancelado"?"Nenhum pedido cancelado.":"Nenhum pedido aqui.")+'</div>';return}
+  const topo=tab==="cancelado"?`<div class="card" style="border-color:#4a1f23"><div class="sub" style="margin-bottom:8px">Pasta de pedidos cancelados. Você pode reabrir um pedido ou excluir de vez.</div><button class="btn cx" style="width:100%;padding:11px" onclick="excluirTodos()">🗑 Excluir todos os cancelados (${l.length})</button></div>`:"";
+  $("list").innerHTML=topo+l.map(card).join("");
 }
 function setTab(k){tab=k;render()}
 const NOME={aguardando_pagamento:"AGUARDANDO PAGAMENTO",pago:"PAGO",entregue:"ENTREGUE",cancelado:"CANCELADO"};
@@ -158,6 +159,7 @@ function card(p){
   if(p.status==="aguardando_pagamento"){acts.push(`<button class="btn pay" onclick="mudar('${p.id}','pago')">✅ Confirmar pagamento</button>`,`<button class="btn cx" onclick="cancelar('${p.id}')">Cancelar</button>`)}
   if(p.status==="pago"){acts.push(`<button class="btn del" onclick="mudar('${p.id}','entregue')">🛵 Marcar entregue</button>`,`<button class="btn" onclick="mudar('${p.id}','aguardando_pagamento')">↩ Voltar p/ aguardando</button>`)}
   if(p.status==="entregue"||p.status==="cancelado")acts.push(`<button class="btn" onclick="mudar('${p.id}','aguardando_pagamento')">↩ Reabrir</button>`);
+  if(p.status==="cancelado")acts.push(`<button class="btn cx" onclick="excluir('${p.id}')">🗑 Excluir</button>`);
   acts.push(`<button class="btn" onclick="copiar('${p.id}')">📋 Copiar via delivery</button>`);
   return `<div class="card ${p.status}">
     <div class="top"><div><div class="num">Nº ${esc(p.numero)} · ${esc(p.cliente)}</div><div class="sub">${hora} · ${esc(p.pagamento||"")}</div></div>
@@ -171,6 +173,17 @@ function card(p){
 async function mudar(id,st){
   try{await rpc("popeye_mudar_status",{p_senha:SENHA,p_id:id,p_status:st});toast(st==="pago"?"Pagamento confirmado ✅":"Atualizado");load(false)}
   catch(e){toast("Erro ao atualizar. Tente de novo.")}
+}
+async function excluir(id){
+  if(!confirm("Excluir este pedido cancelado de vez? Não dá para desfazer."))return;
+  try{await rpc("popeye_excluir_cancelados",{p_senha:SENHA,p_ids:[id]});toast("Pedido excluído");load(false)}
+  catch(e){toast("Erro ao excluir. Tente de novo.")}
+}
+async function excluirTodos(){
+  const n=rows.filter(r=>r.status==="cancelado").length;if(!n)return;
+  if(!confirm("Excluir TODOS os "+n+" pedidos cancelados de vez? Não dá para desfazer."))return;
+  try{const t=await rpc("popeye_excluir_cancelados",{p_senha:SENHA,p_ids:null});toast(t+" pedido(s) excluído(s)");load(false)}
+  catch(e){toast("Erro ao excluir. Tente de novo.")}
 }
 function cancelar(id){if(confirm("Cancelar este pedido?"))mudar(id,"cancelado")}
 function copiar(id){

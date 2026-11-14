@@ -1879,17 +1879,25 @@ window.PAY_URL="https://pwsherzzgfjxaoarapgf.supabase.co/functions/v1/ip-criar-l
     if(q.get("ip")!=="ok"||!/^[0-9a-f-]{36}$/i.test(id||""))return;
     try{history.replaceState(null,"",location.pathname)}catch(e){}
     var n=0,numero="";
-    function msgZap(){return WA+"?text="+encodeURIComponent("Olá! Acabei de pagar o pedido Nº "+numero+" pelo site.")}
+    var textoPed="";
+    function msgZap(){
+      var t=textoPed;
+      if(t){
+        t=t.replace(/🟡 \*Status:\* AGUARDANDO PAGAMENTO/,"🟢 *Status:* PAGO ONLINE ✅").replace(/\*Pagamento:\* PIX/,"*Pagamento:* ONLINE (InfinitePay) - PAGO");
+        t="✅ *PAGAMENTO ONLINE CONFIRMADO*\n\n"+t;
+      }else t="Olá! Acabei de pagar o pedido Nº "+numero+" pelo site.";
+      return WA+"?text="+encodeURIComponent(t);
+    }
     function mostra(){
       caixa('<div style="font-size:34px">⏳</div><h3 style="margin:6px 0">Confirmando seu pagamento…</h3><div style="font-size:14px;color:#c9d1d8">Só um instante, não feche esta página.</div>');
     }
     function consulta(){
       fetch(SB+"popeye_status_pedido",{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"Content-Type":"application/json"},body:JSON.stringify({p_id:id})})
         .then(function(r){return r.json()}).then(function(j){
-          numero=j.numero||numero;
+          numero=j.numero||numero;if(j.texto)textoPed=j.texto;
           if(j.status==="pago"||j.status==="entregue"){
             var ov=caixa('<div style="font-size:38px">✅</div><h3 style="margin:6px 0">Pagamento confirmado!</h3><div style="font-size:15px;color:#c9d1d8">Pedido Nº '+esc(numero)+' recebido. Já estamos preparando seu lanche.</div>'
-              +'<a href="'+msgZap()+'" target="_blank" rel="noopener" style="text-decoration:none">'+btn("pvZap2","Falar com a Popeye no WhatsApp",false)+'</a>'+btn("pvOk","Fechar",true));
+              +'<a href="'+msgZap()+'" target="_blank" rel="noopener" style="text-decoration:none">'+btn("pvZap2","Enviar pedido no WhatsApp",true)+'</a>'+btn("pvOk","Fechar",false));
             ov.querySelector("#pvOk").onclick=fechar;return;
           }
           if(j.status==="cancelado"||j.status==="nao_encontrado"){

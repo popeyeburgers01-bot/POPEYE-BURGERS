@@ -1724,7 +1724,7 @@ function pixPayload(key,name,city,amount,txid){
          (CNPJ só números, e-mail, telefone com +55, ou chave aleatória)
    name: nome do recebedor (até 25 letras, sem acento)
    city: cidade (até 15 letras, sem acento) */
-const PIX={key:"68742395000131",name:"POPEYE BURGERS",city:"SAO PAULO"};
+const PIX={key:"9ea4ae0f-7d51-426c-917a-da5a0783a9b1",name:"POPEYE BURGERS",city:"SAO PAULO"};
 window.__pixLast={total:0,ready:false};
 function pixQrSvg(code){
   var q=new window.QRCodeLib(0,window.QRECL.M);q.addData(code);q.make();
@@ -1847,7 +1847,7 @@ window.PAY_URL="https://pwsherzzgfjxaoarapgf.supabase.co/functions/v1/ip-criar-l
   // ----- tela de pagamento do pedido -----
   if(window.PAGAMENTO_ONLINE){
     var lab=document.getElementById("payLabel"),nota=document.getElementById("payNote");
-    if(lab)lab.innerHTML='💳 PAGAMENTO ONLINE <small style="opacity:.8">(Pix ou cartão)</small> <input type="radio" name="pay" value="ONLINE" checked>';
+    if(lab)lab.innerHTML='💳 PAGAMENTO ONLINE <small style="opacity:.8">(Pix ou cartão de crédito)</small> <input type="radio" name="pay" value="ONLINE" checked>';
     if(nota)nota.textContent="Você paga na próxima tela, com segurança. Seu pedido vai para a cozinha assim que o pagamento for confirmado.";
     var st=document.createElement("style");st.textContent="#pixBox{display:none!important}";document.head.appendChild(st);
   }

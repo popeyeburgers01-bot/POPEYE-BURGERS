@@ -1768,7 +1768,7 @@ document.addEventListener("change",function(e){if(e.target&&e.target.name==="pay
   const KEY_="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3c2hlcnp6Z2ZqeGFvYXJhcGdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5MzU4OTUsImV4cCI6MjEwNzUxMTg5NX0.dKIJUclhb5mk1EJK2526cbyhgenhP0Jk-V90GPk_kN8";
   const DIAS=["domingo","segunda-feira","terça-feira","quarta-feira","quinta-feira","sexta-feira","sábado"];
   const CURTO=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
-  const S={modo:"auto",horarios:{"5":[18,24],"6":[18,24],"0":[16,20]},base:null};
+  const S={modo:"auto",horarios:{"5":[19,24],"6":[19,24],"0":[16,20]},base:null};
   const fmt=h=>(h%24)+"h";
   function agora(){
     if(S.base){let m=S.base.min+Math.floor((Date.now()-S.base.t0)/60000),d=S.base.dow;while(m>=1440){m-=1440;d=(d+1)%7}return{dow:d,min:m}}

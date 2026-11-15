@@ -44,6 +44,9 @@ main{padding:14px;max-width:680px;margin:0 auto}
 .loja .st.on{color:var(--ok)}.loja .st.off{color:#ff6b6b}
 .seg{display:flex;gap:4px}.seg button{background:#2a2f36;color:#cfd5da;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-weight:800;font-size:12px}
 .seg button.on{background:var(--r);border-color:var(--r);color:#fff}
+.alerta{position:fixed;left:8px;right:8px;top:8px;z-index:100;display:none;background:#ffc21a;color:#1a1a1a;border-radius:14px;padding:14px 16px;box-shadow:0 8px 30px rgba(0,0,0,.6);cursor:pointer;animation:pisca 1s infinite}
+.alerta.show{display:block}.alerta b{display:block;font-size:17px}.alerta small{display:block;margin-top:2px;font-size:13px;font-weight:700}.alerta u{display:block;margin-top:6px;font-size:12px;opacity:.75}
+@keyframes pisca{0%,100%{background:#ffc21a}50%{background:#ff7a1a}}
 </style></head><body>
 <div id="pwScreen" class="pw">
   <div style="font-size:40px">🧾</div>
@@ -57,12 +60,13 @@ main{padding:14px;max-width:680px;margin:0 auto}
   <header>
     <div class="hrow"><h1>🧾 Pedidos</h1>
       <div style="display:flex;gap:6px;align-items:center"><span class="live" id="live"></span>
-      <button class="btn" onclick="load(true)">↻</button><button class="btn" onclick="logout()">Sair</button></div></div>
+      <button class="btn" id="btnSom" onclick="configSom()" title="Som e aviso de novos pedidos">🔔</button><button class="btn" onclick="load(true)">↻</button><button class="btn" onclick="logout()">Sair</button></div></div>
     <div class="tabs" id="tabs"></div>
     <div class="loja"><div class="st" id="lojaSt">Loja…</div><div class="seg" id="lojaSeg"></div></div>
   </header>
   <main id="list"><div class="msg">Carregando...</div></main>
 </div>
+<div id="alerta" class="alerta" onclick="pararAlerta()"></div>
 <div id="toast" class="toast"></div>
 
 <script>
@@ -80,7 +84,7 @@ async function rpc(fn,body){
   if(!r.ok){const t=await r.text();throw new Error(t)}
   return r.json();
 }
-function entrar(){$("pwScreen").style.display="none";$("app").style.display="block";load(true);loadLoja();clearInterval(timer);timer=setInterval(()=>{load(false);loadLoja()},15000)}
+function entrar(){$("pwScreen").style.display="none";$("app").style.display="block";manterTela();$("btnSom").textContent=somOn?"🔔":"🔕";load(true);loadLoja();clearInterval(timer);timer=setInterval(()=>{load(false);loadLoja()},15000)}
 async function login(){
   const v=$("pwInput").value;
   try{await rpc("popeye_listar_pedidos",{p_senha:v,p_dias:1});SENHA=v;try{sessionStorage.setItem("pp",v)}catch(e){}entrar()}
@@ -119,16 +123,49 @@ async function setLoja(m){
 function logout(){try{sessionStorage.removeItem("pp")}catch(e){}location.reload()}
 try{const v=sessionStorage.getItem("pp");if(v){SENHA=v;entrar()}}catch(e){}
 
+let AC=null,alertaTimer=null,titFlash=null,TIT0=document.title,somOn=true,estados=null,wake=null;
+try{somOn=localStorage.getItem("pp_som")!=="0"}catch(e){}
+function audioCtx(){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume()}catch(e){}return AC}
+["pointerdown","keydown","touchstart"].forEach(ev=>document.addEventListener(ev,()=>audioCtx(),{passive:true}));
+function tocar(){
+  if(!somOn)return;const a=audioCtx();if(!a)return;
+  try{[[880,0],[1175,.22],[880,.44],[1175,.66],[1568,.9]].forEach(([f,t])=>{const o=a.createOscillator(),g=a.createGain();o.type="triangle";o.frequency.value=f;o.connect(g);g.connect(a.destination);const s=a.currentTime+t;g.gain.setValueAtTime(.0001,s);g.gain.exponentialRampToValueAtTime(.6,s+.02);g.gain.exponentialRampToValueAtTime(.0001,s+.2);o.start(s);o.stop(s+.22)});if(navigator.vibrate)navigator.vibrate([300,150,300,150,300])}catch(e){}
+}
+function pararAlerta(){
+  clearInterval(alertaTimer);alertaTimer=null;clearInterval(titFlash);titFlash=null;document.title=TIT0;$("alerta").classList.remove("show");
+}
+function alertar(tipo,p){
+  const pago=tipo==="pago";
+  const t=pago?"🔔 NOVO PEDIDO PAGO — nº "+p.numero:"🔔 NOVO PEDIDO — nº "+p.numero;
+  const sub=esc(p.cliente||"")+" · "+brl(p.total)+(pago?" · pagamento confirmado ✅":" · aguardando Pix");
+  $("alerta").innerHTML="<b>"+t+"</b><small>"+sub+"</small><u>Toque aqui para parar o alarme</u>";
+  $("alerta").classList.add("show");
+  tocar();clearInterval(alertaTimer);let n=0;alertaTimer=setInterval(()=>{tocar();if(++n>=30)pararAlerta()},6000);
+  clearInterval(titFlash);let f=false;titFlash=setInterval(()=>{document.title=(f=!f)?t:TIT0},900);
+  try{if("Notification" in window&&Notification.permission==="granted"&&document.hidden){const nt=new Notification(t,{body:sub.replace(/<[^>]+>/g,""),tag:"pedido-"+p.id,requireInteraction:true});nt.onclick=()=>{window.focus();pararAlerta();nt.close()}}}catch(e){}
+}
+function configSom(){
+  audioCtx();
+  if(somOn&&AC&&AC.state==="running"&&$("btnSom").dataset.ok==="1"){somOn=false;try{localStorage.setItem("pp_som","0")}catch(e){}$("btnSom").textContent="🔕";toast("Som desligado");return}
+  somOn=true;try{localStorage.setItem("pp_som","1")}catch(e){}
+  $("btnSom").textContent="🔔";$("btnSom").dataset.ok="1";tocar();toast("Alerta de pedidos ligado 🔔");
+  try{if("Notification" in window&&Notification.permission==="default")Notification.requestPermission()}catch(e){}
+}
+async function manterTela(){try{if("wakeLock" in navigator){wake=await navigator.wakeLock.request("screen");wake.addEventListener("release",()=>{wake=null})}}catch(e){}}
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&!wake&&$("app").style.display==="block")manterTela()});
 function beep(){try{const a=new (window.AudioContext||window.webkitAudioContext)();[0,.25,.5].forEach(t=>{const o=a.createOscillator(),g=a.createGain();o.frequency.value=880;o.connect(g);g.connect(a.destination);g.gain.setValueAtTime(.2,a.currentTime+t);o.start(a.currentTime+t);o.stop(a.currentTime+t+.18)});if(navigator.vibrate)navigator.vibrate([200,100,200])}catch(e){}}
 
 async function load(manual){
   try{
     const data=await rpc("popeye_listar_pedidos",{p_senha:SENHA,p_dias:7});
-    const novos=vistos?data.filter(p=>!vistos.has(p.id)&&p.status==="aguardando_pagamento"):[];
-    vistos=new Set(data.map(p=>p.id));
+    const evs=[];
+    if(estados){for(const p of data){const antes=estados.get(p.id);
+      if(antes===undefined){if(p.status==="pago")evs.push(["pago",p]);else if(p.status==="aguardando_pagamento"&&String(p.pagamento||"").toUpperCase()!=="ONLINE")evs.push(["novo",p])}
+      else if(antes!=="pago"&&p.status==="pago")evs.push(["pago",p])}}
+    estados=new Map(data.map(p=>[p.id,p.status]));vistos=true;
     rows=data; render();
     $("live").textContent="atualizado "+new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
-    if(novos.length){beep();toast("🔔 Novo pedido: nº "+novos[0].numero)}
+    if(evs.length){const e=evs.find(x=>x[0]==="pago")||evs[0];alertar(e[0],e[1])}
   }catch(e){
     if(/senha/i.test(e.message)){logout();return}
     $("live").textContent="sem conexão";
@@ -171,7 +208,7 @@ function card(p){
     <div class="acts">${acts.join("")}</div></div>`;
 }
 async function mudar(id,st){
-  try{await rpc("popeye_mudar_status",{p_senha:SENHA,p_id:id,p_status:st});toast(st==="pago"?"Pagamento confirmado ✅":"Atualizado");load(false)}
+  try{await rpc("popeye_mudar_status",{p_senha:SENHA,p_id:id,p_status:st});if(estados)estados.set(id,st);toast(st==="pago"?"Pagamento confirmado ✅":"Atualizado");load(false)}
   catch(e){toast("Erro ao atualizar. Tente de novo.")}
 }
 async function excluir(id){

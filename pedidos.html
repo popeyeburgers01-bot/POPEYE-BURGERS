@@ -47,6 +47,17 @@ main{padding:14px;max-width:680px;margin:0 auto}
 .alerta{position:fixed;left:8px;right:8px;top:8px;z-index:100;display:none;background:#ffc21a;color:#1a1a1a;border-radius:14px;padding:14px 16px;box-shadow:0 8px 30px rgba(0,0,0,.6);cursor:pointer;animation:pisca 1s infinite}
 .alerta.show{display:block}.alerta b{display:block;font-size:17px}.alerta small{display:block;margin-top:2px;font-size:13px;font-weight:700}.alerta u{display:block;margin-top:6px;font-size:12px;opacity:.75}
 @keyframes pisca{0%,100%{background:#ffc21a}50%{background:#ff7a1a}}
+.slista{display:flex;flex-direction:column;gap:6px}.sbtn{display:flex;justify-content:space-between;align-items:center;background:#1f252c;color:#e8ecef;border:1px solid #2f3842;border-radius:10px;padding:11px 12px;font-weight:800;font-size:14px;text-align:left;cursor:pointer}.sbtn span{font-size:11px;color:#9aa3ab;font-weight:700}.sbtn.on{border-color:#ffc21a;background:#2a2410}
+#cupom{display:none}
+.pbtn{display:flex;justify-content:space-between;align-items:center}
+@media print{
+  html,body{background:#fff!important;margin:0!important;padding:0!important}
+  body>*:not(#cupom){display:none!important}
+  #cupom{display:block!important;color:#000;background:#fff;font-family:"Courier New",Consolas,monospace;font-size:12px;line-height:1.25;font-weight:700;padding:2mm 2mm 6mm;box-sizing:border-box}
+  #cupom .c{text-align:center}#cupom .g{font-size:16px}#cupom .l{border-top:1px dashed #000;margin:4px 0}
+  #cupom .r{display:flex;justify-content:space-between;gap:6px}#cupom .s{padding-left:10px;font-size:11px;font-weight:400}
+  #cupom .t{font-size:16px}
+}
 </style></head><body>
 <div id="pwScreen" class="pw">
   <div style="font-size:40px">🧾</div>
@@ -60,13 +71,35 @@ main{padding:14px;max-width:680px;margin:0 auto}
   <header>
     <div class="hrow"><h1>🧾 Pedidos</h1>
       <div style="display:flex;gap:6px;align-items:center"><span class="live" id="live"></span>
-      <button class="btn" id="btnSom" onclick="configSom()" title="Som e aviso de novos pedidos">🔔</button><button class="btn" onclick="load(true)">↻</button><button class="btn" onclick="logout()">Sair</button></div></div>
+      <button class="btn" id="btnPrt" onclick="abrirPrt()" title="Impressão automática do cupom">🖨️</button><button class="btn" id="btnSom" onclick="configSom()" title="Som do alerta (escolher som e volume)">🔔</button><button class="btn" onclick="load(true)">↻</button><button class="btn" onclick="logout()">Sair</button></div></div>
     <div class="tabs" id="tabs"></div>
     <div class="loja"><div class="st" id="lojaSt">Loja…</div><div class="seg" id="lojaSeg"></div></div>
   </header>
   <main id="list"><div class="msg">Carregando...</div></main>
 </div>
+<div id="cupom"></div><style id="pgStyle">@page{size:80mm auto;margin:0}@media print{#cupom{width:80mm}}</style>
 <div id="alerta" class="alerta" onclick="pararAlerta()"></div>
+<div id="prtPanel" style="display:none;position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.75);align-items:center;justify-content:center;padding:14px" onclick="if(event.target===this)fecharPrt()">
+  <div style="background:#151a1f;border:1px solid #2a323a;border-radius:16px;max-width:420px;width:100%;padding:18px;max-height:92vh;overflow:auto">
+    <h3 style="margin:0 0 4px">🖨️ Impressão automática</h3>
+    <div style="font-size:12px;color:#9aa3ab;margin-bottom:10px">Imprime o cupom do pedido assim que o pagamento for confirmado. Vale para este computador e este navegador.</div>
+    <div class="seg" id="prtLig"></div>
+    <div style="font-size:12px;color:#9aa3ab;margin:12px 0 4px">Largura do papel</div><div class="seg" id="prtLarg"></div>
+    <button class="btn" style="width:100%;margin-top:12px" onclick="imprimirTeste()">🧾 Imprimir cupom de teste</button>
+    <div style="font-size:12px;color:#c9d1d8;margin-top:12px;line-height:1.45"><b>Para imprimir sem aparecer a janela de impressão (Windows):</b><br>1) Deixe a impressora térmica como <b>impressora padrão</b> do Windows.<br>2) Feche o Chrome. Clique com o botão direito no atalho do Chrome &gt; Propriedades. No campo <b>Destino</b>, no final, deixe um espaço e acrescente <code>--kiosk-printing</code>.<br>3) Abra o Chrome por esse atalho e entre neste painel. Mantenha a janela aberta e visível.</div>
+    <button class="btn" style="width:100%;margin-top:14px" onclick="fecharPrt()">Fechar</button>
+  </div>
+</div>
+<div id="somPanel" style="display:none;position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.75);align-items:center;justify-content:center;padding:14px" onclick="if(event.target===this)fecharSom()">
+  <div style="background:#151a1f;border:1px solid #2a323a;border-radius:16px;max-width:380px;width:100%;padding:18px;max-height:92vh;overflow:auto">
+    <h3 style="margin:0 0 4px">🔔 Som do alerta</h3>
+    <div style="font-size:12px;color:#9aa3ab;margin-bottom:10px">Toque em um som para ouvir e escolher. A escolha fica salva neste aparelho.</div>
+    <div id="somLista" class="slista"></div>
+    <div style="font-size:12px;color:#9aa3ab;margin:12px 0 4px">Volume</div><div class="seg" id="somVol"></div>
+    <div style="margin-top:10px" class="seg" id="somLig"></div>
+    <button class="btn" style="width:100%;margin-top:14px" onclick="fecharSom()">Fechar</button>
+  </div>
+</div>
 <div id="toast" class="toast"></div>
 
 <script>
@@ -84,7 +117,7 @@ async function rpc(fn,body){
   if(!r.ok){const t=await r.text();throw new Error(t)}
   return r.json();
 }
-function entrar(){$("pwScreen").style.display="none";$("app").style.display="block";manterTela();$("btnSom").textContent=somOn?"🔔":"🔕";load(true);loadLoja();clearInterval(timer);timer=setInterval(()=>{load(false);loadLoja()},15000)}
+function entrar(){$("pwScreen").style.display="none";$("app").style.display="block";manterTela();$("btnSom").textContent=somOn?"🔔":"🔕";$("btnPrt").textContent=PRT_ON?"🖨️":"🖨️⛔";load(true);loadLoja();clearInterval(timer);timer=setInterval(()=>{load(false);loadLoja()},15000)}
 async function login(){
   const v=$("pwInput").value;
   try{await rpc("popeye_listar_pedidos",{p_senha:v,p_dias:1});SENHA=v;try{sessionStorage.setItem("pp",v)}catch(e){}entrar()}
@@ -121,19 +154,36 @@ async function setLoja(m){
   catch(e){toast("Erro ao alterar. Tente de novo.")}
 }
 function logout(){try{sessionStorage.removeItem("pp")}catch(e){}location.reload()}
-try{const v=sessionStorage.getItem("pp");if(v){SENHA=v;entrar()}}catch(e){}
+
 
 let AC=null,alertaTimer=null,titFlash=null,TIT0=document.title,somOn=true,estados=null,wake=null;
 try{somOn=localStorage.getItem("pp_som")!=="0"}catch(e){}
 function audioCtx(){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume()}catch(e){}return AC}
 ["pointerdown","keydown","touchstart"].forEach(ev=>document.addEventListener(ev,()=>audioCtx(),{passive:true}));
-function tocar(){
-  if(!somOn)return;const a=audioCtx();if(!a)return;
-  try{[[880,0],[1175,.22],[880,.44],[1175,.66],[1568,.9]].forEach(([f,t])=>{const o=a.createOscillator(),g=a.createGain();o.type="triangle";o.frequency.value=f;o.connect(g);g.connect(a.destination);const s=a.currentTime+t;g.gain.setValueAtTime(.0001,s);g.gain.exponentialRampToValueAtTime(.6,s+.02);g.gain.exponentialRampToValueAtTime(.0001,s+.2);o.start(s);o.stop(s+.22)});if(navigator.vibrate)navigator.vibrate([300,150,300,150,300])}catch(e){}
+let SOM="classico",VOL=2;
+try{SOM=localStorage.getItem("pp_tom")||"classico";VOL=+(localStorage.getItem("pp_vol")||2)}catch(e){}
+const SONS=[["classico","Clássico"],["sino","Sino"],["campainha","Campainha de telefone"],["alarme","Alarme forte"],["caixa","Caixa registradora"],["sirene","Sirene"]];
+function nota(a,f,t,d,tipo,v,f2){
+  const o=a.createOscillator(),g=a.createGain();o.type=tipo;const s=a.currentTime+t;
+  o.frequency.setValueAtTime(f,s);if(f2)o.frequency.linearRampToValueAtTime(f2,s+d);
+  o.connect(g);g.connect(a.destination);const pk=Math.max(v*[0,.3,.6,1][VOL],.001);
+  g.gain.setValueAtTime(.0001,s);g.gain.exponentialRampToValueAtTime(pk,s+.02);g.gain.exponentialRampToValueAtTime(.0001,s+d);o.start(s);o.stop(s+d+.03);
+}
+function padrao(a,id){
+  if(id==="sino"){nota(a,1318,0,1.2,"sine",1);nota(a,2636,0,.6,"sine",.5);nota(a,1318,.7,1.2,"sine",1);nota(a,2636,.7,.6,"sine",.5)}
+  else if(id==="campainha"){for(const b of [0,.8])for(let i=0;i<4;i++)nota(a,i%2?480:620,b+i*.12,.1,"square",.5)}
+  else if(id==="alarme"){for(let i=0;i<3;i++)nota(a,700,i*.4,.35,"sawtooth",.6,1000)}
+  else if(id==="caixa"){nota(a,2093,0,.12,"sine",.9);nota(a,2637,.1,.55,"sine",.9);nota(a,4186,.1,.3,"sine",.3)}
+  else if(id==="sirene"){for(let i=0;i<2;i++){nota(a,600,i,.5,"triangle",1,1200);nota(a,1200,i+.5,.5,"triangle",1,600)}}
+  else{[[880,0],[1175,.22],[880,.44],[1175,.66],[1568,.9]].forEach(([f,t])=>nota(a,f,t,.2,"triangle",1))}
+}
+function tocar(id){
+  if(!somOn&&!id)return;const a=audioCtx();if(!a)return;
+  try{padrao(a,id||SOM);if(!id&&navigator.vibrate)navigator.vibrate([300,150,300,150,300])}catch(e){}
 }
 function suave(){
   if(!somOn)return;const a=audioCtx();if(!a)return;
-  try{[[660,0],[880,.18]].forEach(([f,t])=>{const o=a.createOscillator(),g=a.createGain();o.type="sine";o.frequency.value=f;o.connect(g);g.connect(a.destination);const s=a.currentTime+t;g.gain.setValueAtTime(.0001,s);g.gain.exponentialRampToValueAtTime(.35,s+.02);g.gain.exponentialRampToValueAtTime(.0001,s+.16);o.start(s);o.stop(s+.18)})}catch(e){}
+  try{nota(a,660,0,.18,"sine",.6);nota(a,880,.18,.18,"sine",.6)}catch(e){}
 }
 function pararAlerta(){
   clearInterval(alertaTimer);alertaTimer=null;clearInterval(titFlash);titFlash=null;document.title=TIT0;$("alerta").classList.remove("show");
@@ -148,15 +198,91 @@ function alertar(tipo,p){
   clearInterval(titFlash);let f=false;titFlash=setInterval(()=>{document.title=(f=!f)?t:TIT0},900);
   try{if("Notification" in window&&Notification.permission==="granted"&&document.hidden){const nt=new Notification(t,{body:sub.replace(/<[^>]+>/g,""),tag:"pedido-"+p.id,requireInteraction:true});nt.onclick=()=>{window.focus();pararAlerta();nt.close()}}}catch(e){}
 }
+function pintarSom(){
+  $("somLista").innerHTML=SONS.map(([k,n])=>`<button class="sbtn ${SOM===k?"on":""}" onclick="escolherSom('${k}')">${SOM===k?"✔ ":""}${n} <span>▶ ouvir</span></button>`).join("");
+  $("somVol").innerHTML=[[1,"Baixo"],[2,"Médio"],[3,"Alto"]].map(([v,n])=>`<button class="${VOL===v?"on":""}" onclick="escolherVol(${v})">${n}</button>`).join("");
+  $("somLig").innerHTML=[[true,"Som ligado"],[false,"Som desligado"]].map(([v,n])=>`<button class="${somOn===v?"on":""}" onclick="ligarSom(${v})">${n}</button>`).join("");
+  $("btnSom").textContent=somOn?"🔔":"🔕";
+}
+function escolherSom(k){SOM=k;try{localStorage.setItem("pp_tom",k)}catch(e){}pintarSom();audioCtx();tocar(k)}
+function escolherVol(v){VOL=v;try{localStorage.setItem("pp_vol",String(v))}catch(e){}pintarSom();audioCtx();tocar(SOM)}
+function ligarSom(v){somOn=v;try{localStorage.setItem("pp_som",v?"1":"0")}catch(e){}pintarSom();if(v){audioCtx();tocar(SOM)}}
+function fecharSom(){$("somPanel").style.display="none"}
 function configSom(){
-  audioCtx();
-  if(somOn&&AC&&AC.state==="running"&&$("btnSom").dataset.ok==="1"){somOn=false;try{localStorage.setItem("pp_som","0")}catch(e){}$("btnSom").textContent="🔕";toast("Som desligado");return}
-  somOn=true;try{localStorage.setItem("pp_som","1")}catch(e){}
-  $("btnSom").textContent="🔔";$("btnSom").dataset.ok="1";tocar();toast("Alerta de pedidos ligado 🔔");
+  audioCtx();pintarSom();$("somPanel").style.display="flex";
   try{if("Notification" in window&&Notification.permission==="default")Notification.requestPermission()}catch(e){}
 }
 async function manterTela(){try{if("wakeLock" in navigator){wake=await navigator.wakeLock.request("screen");wake.addEventListener("release",()=>{wake=null})}}catch(e){}}
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&!wake&&$("app").style.display==="block")manterTela()});
+
+/* ===== Impressão automática do cupom ===== */
+let PRT_ON=false,PRT_W="80",impressos=new Set(),filaPrt=[],imprimindo=false;
+try{PRT_ON=localStorage.getItem("pp_print")==="1";PRT_W=localStorage.getItem("pp_larg")||"80";impressos=new Set(JSON.parse(localStorage.getItem("pp_impressos")||"[]"))}catch(e){}
+function salvarImpressos(){try{localStorage.setItem("pp_impressos",JSON.stringify([...impressos].slice(-400)))}catch(e){}}
+function estiloPapel(){$("pgStyle").textContent="@page{size:"+PRT_W+"mm auto;margin:0}@media print{#cupom{width:"+PRT_W+"mm}}"}
+function pintarPrt(){
+  $("prtLig").innerHTML=[[true,"Automática: ligada"],[false,"Automática: desligada"]].map(([v,n])=>`<button class="${PRT_ON===v?"on":""}" onclick="ligarPrt(${v})">${n}</button>`).join("");
+  $("prtLarg").innerHTML=["58","80"].map(w=>`<button class="${PRT_W===w?"on":""}" onclick="larguraPrt('${w}')">${w} mm</button>`).join("");
+  $("btnPrt").textContent=PRT_ON?"🖨️":"🖨️⛔";
+}
+function abrirPrt(){pintarPrt();$("prtPanel").style.display="flex"}
+function fecharPrt(){$("prtPanel").style.display="none"}
+function ligarPrt(v){
+  PRT_ON=v;try{localStorage.setItem("pp_print",v?"1":"0")}catch(e){}
+  if(v){rows.filter(r=>r.status==="pago"||r.status==="entregue").forEach(r=>impressos.add(r.id));salvarImpressos();toast("Impressão automática ligada")}
+  pintarPrt();
+}
+function larguraPrt(w){PRT_W=w;try{localStorage.setItem("pp_larg",w)}catch(e){}estiloPapel();pintarPrt()}
+const m2=v=>"R$ "+Number(v||0).toFixed(2).replace(".",",");
+function cupomHTML(p,teste){
+  const dt=new Date(p.pago_em||p.criado_em||Date.now());
+  const data=dt.toLocaleDateString("pt-BR")+" "+dt.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+  const it=(p.itens||[]).map(i=>{
+    let x=`<div class="r"><span>${esc(i.qtd)}x ${esc(i.nome)}</span><span>${m2(i.preco*i.qtd)}</span></div>`;
+    const ad=(i.adicionais||[]).map(a=>esc(a[0])).join(", ");
+    if(ad)x+=`<div class="s">+ ${ad}</div>`;
+    if(Array.isArray(i.acompanha)&&i.acompanha.length)x+=`<div class="s">Acompanha: ${i.acompanha.map(esc).join(", ")}</div>`;
+    if((i.sem||[]).length)x+=`<div class="s">SEM: ${i.sem.map(esc).join(", ")}</div>`;
+    if(i.obs)x+=`<div class="s">Obs.: ${esc(i.obs)}</div>`;
+    return x}).join("");
+  const sub=(p.itens||[]).reduce((a,i)=>a+i.preco*i.qtd,0);
+  const pg=String(p.pagamento||"").replace(/^ONLINE$/i,"ONLINE");
+  return `<div class="c g">POPEYE BURGERS</div><div class="c">${teste?"*** CUPOM DE TESTE ***":"PEDIDO PARA ENTREGA"}</div><div class="l"></div>
+  <div class="c t">Nº ${esc(p.numero)}</div><div class="c">${data}</div><div class="l"></div>
+  <div><b>Cliente:</b> ${esc(p.cliente)}</div>
+  <div>${esc(p.endereco)}, ${esc(p.numero_casa)}</div><div>${esc(p.bairro)}${p.referencia?" · Ref.: "+esc(p.referencia):""}</div><div>CEP ${esc(p.cep)}</div><div class="l"></div>
+  ${it}<div class="l"></div>
+  <div class="r"><span>Subtotal</span><span>${m2(sub)}</span></div>
+  ${p.desconto>0?`<div class="r"><span>Cupom</span><span>-${m2(p.desconto)}</span></div>`:""}
+  <div class="r"><span>Entrega</span><span>${p.taxa_entrega>0?m2(p.taxa_entrega):"grátis"}</span></div>
+  <div class="r t"><span>TOTAL</span><span>${m2(p.total)}</span></div><div class="l"></div>
+  <div class="c">${p.status==="pago"||p.status==="entregue"||teste?"✔ PAGO — "+esc(pg||"ONLINE"):"AGUARDANDO PAGAMENTO"}</div>
+  ${p.observacao?`<div class="l"></div><div><b>Obs.:</b> ${esc(p.observacao)}</div>`:""}<div class="l"></div><div class="c">Obrigado pela preferência!</div>`;
+}
+function imprimirAgora(p,teste){
+  return new Promise(res=>{
+    estiloPapel();$("cupom").innerHTML=cupomHTML(p,teste);
+    const fim=()=>{window.removeEventListener("afterprint",fim);$("cupom").innerHTML="";setTimeout(res,600)};
+    window.addEventListener("afterprint",fim);
+    setTimeout(()=>{try{window.print()}catch(e){fim()}},150);
+  });
+}
+async function rodarFila(){
+  if(imprimindo)return;imprimindo=true;
+  while(filaPrt.length){const x=filaPrt.shift();await imprimirAgora(x.p,x.teste)}
+  imprimindo=false;
+}
+function enfileirar(p,teste){filaPrt.push({p,teste});rodarFila()}
+function imprimirPedido(id){const p=rows.find(r=>r.id===id);if(p)enfileirar(p,false)}
+function imprimirTeste(){enfileirar({numero:"TESTE",cliente:"Cliente Teste",endereco:"Rua Exemplo",numero_casa:"123",bairro:"Bairro",referencia:"",cep:"00000-000",itens:[{qtd:1,nome:"POPEYE X-BURGER",preco:31.99,adicionais:[["Bacon",5]],acompanha:["Ketchup"],sem:["Cebola"]},{qtd:1,nome:"COCA-COLA ZERO 350 ML",preco:7.99}],desconto:9.6,taxa_entrega:2.99,total:32.37,pagamento:"ONLINE",status:"pago",observacao:"Sem pressa",criado_em:new Date().toISOString()},true)}
+function verificarImpressao(data){
+  if(!PRT_ON)return;
+  const limite=Date.now()-12*3600*1000;
+  data.filter(p=>p.status==="pago"&&!impressos.has(p.id)&&new Date(p.criado_em).getTime()>limite).forEach(p=>{impressos.add(p.id);enfileirar(p,false)});
+  salvarImpressos();
+}
+estiloPapel();
+
 function beep(){try{const a=new (window.AudioContext||window.webkitAudioContext)();[0,.25,.5].forEach(t=>{const o=a.createOscillator(),g=a.createGain();o.frequency.value=880;o.connect(g);g.connect(a.destination);g.gain.setValueAtTime(.2,a.currentTime+t);o.start(a.currentTime+t);o.stop(a.currentTime+t+.18)});if(navigator.vibrate)navigator.vibrate([200,100,200])}catch(e){}}
 
 async function load(manual){
@@ -166,7 +292,7 @@ async function load(manual){
     if(estados){for(const p of data){const antes=estados.get(p.id);
       if(antes===undefined){if(p.status==="pago")evs.push(["pago",p]);else if(p.status==="aguardando_pagamento"){if(String(p.pagamento||"").toUpperCase()!=="ONLINE")evs.push(["novo",p]);else evs.push(["espera",p])}}
       else if(antes!=="pago"&&p.status==="pago")evs.push(["pago",p])}}
-    estados=new Map(data.map(p=>[p.id,p.status]));vistos=true;
+    estados=new Map(data.map(p=>[p.id,p.status]));vistos=true;verificarImpressao(data);
     rows=data; render();
     $("live").textContent="atualizado "+new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
     if(evs.length){const e=evs.find(x=>x[0]==="pago")||evs.find(x=>x[0]==="novo");if(e)alertar(e[0],e[1]);else{suave();toast("🛒 Cliente no pagamento — pedido nº "+evs[0][1].numero)}}
@@ -201,6 +327,7 @@ function card(p){
   if(p.status==="pago"){acts.push(`<button class="btn del" onclick="mudar('${p.id}','entregue')">🛵 Marcar entregue</button>`,`<button class="btn" onclick="mudar('${p.id}','aguardando_pagamento')">↩ Voltar p/ aguardando</button>`)}
   if(p.status==="entregue"||p.status==="cancelado")acts.push(`<button class="btn" onclick="mudar('${p.id}','aguardando_pagamento')">↩ Reabrir</button>`);
   if(p.status==="cancelado")acts.push(`<button class="btn cx" onclick="excluir('${p.id}')">🗑 Excluir</button>`);
+  if(p.status==="pago"||p.status==="entregue")acts.push(`<button class="btn" onclick="imprimirPedido('${p.id}')">🖨️ Imprimir</button>`);
   acts.push(`<button class="btn" onclick="copiar('${p.id}')">📋 Copiar via delivery</button>`);
   return `<div class="card ${p.status}">
     <div class="top"><div><div class="num">Nº ${esc(p.numero)} · ${esc(p.cliente)}</div><div class="sub">${hora} · ${esc(p.pagamento||"")}</div></div>
@@ -233,4 +360,5 @@ function copiar(id){
   const t=(p.texto_delivery||"").replace("🟡 *Status:* AGUARDANDO PAGAMENTO",lbl);
   (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast("Copiado")).catch(()=>toast("Não foi possível copiar"));
 }
+try{const v=sessionStorage.getItem("pp");if(v){SENHA=v;entrar()}}catch(e){}
 </script></body></html>

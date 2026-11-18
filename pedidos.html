@@ -71,12 +71,13 @@ main{padding:14px;max-width:680px;margin:0 auto}
   <header>
     <div class="hrow"><h1>🧾 Pedidos</h1>
       <div style="display:flex;gap:6px;align-items:center"><span class="live" id="live"></span>
-      <button class="btn" id="btnPrt" onclick="abrirPrt()" title="Impressão automática do cupom">🖨️</button><button class="btn" id="btnSom" onclick="configSom()" title="Som do alerta (escolher som e volume)">🔔</button><button class="btn" onclick="load(true)">↻</button><button class="btn" onclick="logout()">Sair</button></div></div>
+      <button class="btn" id="btnPrt" onclick="abrirPrt()" title="Impressão automática do cupom">🖨️</button><button class="btn" id="btnAv" onclick="abrirAval()" title="Avaliações dos clientes">⭐</button><button class="btn" id="btnSom" onclick="configSom()" title="Som do alerta (escolher som e volume)">🔔</button><button class="btn" onclick="load(true)">↻</button><button class="btn" onclick="logout()">Sair</button></div></div>
     <div class="tabs" id="tabs"></div>
     <div class="loja"><div class="st" id="lojaSt">Loja…</div><div class="seg" id="lojaSeg"></div></div>
   </header>
   <main id="list"><div class="msg">Carregando...</div></main>
 </div>
+<div id="avPanel" style="display:none;position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.75);align-items:flex-start;justify-content:center;padding:14px;overflow:auto" onclick="if(event.target===this)fecharAval()"><div style="background:#151a1f;border:1px solid #2a323a;border-radius:14px;max-width:520px;width:100%;padding:16px;margin:auto"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:17px">⭐ Avaliações</b><button class="btn" onclick="fecharAval()">Fechar</button></div><div id="avLista" style="margin-top:10px"></div></div></div>
 <div id="cupom"></div><style id="pgStyle">@page{size:80mm auto;margin:0}@media print{#cupom{width:80mm}}</style>
 <div id="alerta" class="alerta" onclick="pararAlerta()"></div>
 <div id="prtPanel" style="display:none;position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.75);align-items:center;justify-content:center;padding:14px" onclick="if(event.target===this)fecharPrt()">
@@ -249,7 +250,7 @@ function cupomHTML(p,teste){
   const pg=String(p.pagamento||"").replace(/^ONLINE$/i,"ONLINE");
   return `<div class="c g">POPEYE BURGERS</div><div class="c">${teste?"*** CUPOM DE TESTE ***":"PEDIDO PARA ENTREGA"}</div><div class="l"></div>
   <div class="c t">Nº ${esc(p.numero)}</div><div class="c">${data}</div><div class="l"></div>
-  <div><b>Cliente:</b> ${esc(p.cliente)}</div>
+  <div><b>Cliente:</b> ${esc(p.cliente)}</div>${p.celular?`<div><b>Cel.:</b> ${esc(fmtCel(String(p.celular)))}</div>`:""}
   <div>${esc(p.endereco)}, ${esc(p.numero_casa)}</div><div>${esc(p.bairro)}${p.referencia?" · Ref.: "+esc(p.referencia):""}</div><div>CEP ${esc(p.cep)}</div><div class="l"></div>
   ${it}<div class="l"></div>
   <div class="r"><span>Subtotal</span><span>${m2(sub)}</span></div>
@@ -312,6 +313,32 @@ function render(){
 }
 function setTab(k){tab=k;render()}
 const NOME={aguardando_pagamento:"AGUARDANDO PAGAMENTO",pago:"PAGO",entregue:"ENTREGUE",cancelado:"CANCELADO"};
+const SITE_URL="https://popeyeburgers01-bot.github.io/POPEYE-BURGERS/";
+function fmtCel(d){d=String(d).replace(/\D/g,"");return d.length===11?`(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`:d.length===10?`(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`:d}
+function avalUrl(p){
+  const cel=String(p.celular||"").replace(/\D/g,"");if(!cel)return null;
+  const nome=String(p.cliente||"").split(" ")[0];
+  const msg=`Olá, ${nome}! 🍔 Aqui é do Popeye Burgers. Obrigado pelo pedido Nº ${p.numero}! Como foi seu lanche? Avalie em 10 segundos (toque nas estrelas):\n${SITE_URL}?avaliar=${p.id}`;
+  return "https://wa.me/55"+cel+"?text="+encodeURIComponent(msg);
+}
+function pedirAval(id){
+  const p=(rows||[]).find(x=>x.id===id);if(!p)return toast("Pedido não encontrado. Atualize.");
+  const u=avalUrl(p);if(!u)return toast("Pedido sem celular.");
+  window.open(u,"_blank");
+}
+function abrirAval(){document.getElementById("avPanel").style.display="flex";carregarAval()}
+function fecharAval(){document.getElementById("avPanel").style.display="none"}
+async function carregarAval(){
+  const el=document.getElementById("avLista");el.innerHTML='<div class="msg">Carregando…</div>';
+  try{
+    const a=await rpc("popeye_listar_avaliacoes",{p_senha:SENHA});
+    if(!a.length){el.innerHTML='<div class="msg">Nenhuma avaliação ainda.</div>';return}
+    const por={};a.filter(x=>!x.oculta).forEach(x=>{(por[x.item]=por[x.item]||[]).push(x.nota)});
+    const res=Object.keys(por).map(k=>{const v=por[k];return `<div style="display:flex;justify-content:space-between;padding:4px 0"><span>${esc(k)}</span><b style="color:#ffc21a">⭐ ${(v.reduce((s,n)=>s+n,0)/v.length).toFixed(1).replace(".",",")} <small style="color:#9aa3ab">(${v.length})</small></b></div>`}).join("");
+    el.innerHTML=`<div style="border-bottom:1px solid #2a323a;padding-bottom:8px;margin-bottom:8px">${res||'<div class="msg">Todas ocultas.</div>'}</div>`+a.map(x=>`<div style="padding:8px 0;border-bottom:1px solid #20272d;${x.oculta?"opacity:.45":""}"><div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(x.item)}</b><span style="color:#ffc21a">${"★".repeat(x.nota)}<span style="color:#4a545d">${"★".repeat(5-x.nota)}</span></span></div><div style="font-size:12px;color:#9aa3ab">Nº ${esc(x.numero)} · ${esc(x.cliente)} · ${new Date(x.criado_em).toLocaleDateString("pt-BR")}</div>${x.comentario?`<div style="margin-top:4px">“${esc(x.comentario)}”</div>`:""}<button class="btn" style="margin-top:6px;padding:6px 10px" onclick="ocultarAval('${x.id}',${!x.oculta})">${x.oculta?"👁 Mostrar":"🙈 Ocultar"}</button></div>`).join("");
+  }catch(e){el.innerHTML='<div class="msg">Erro ao carregar.</div>'}
+}
+async function ocultarAval(id,oc){try{await rpc("popeye_ocultar_avaliacao",{p_senha:SENHA,p_id:id,p_oculta:oc});carregarAval()}catch(e){toast("Erro. Tente de novo.")}}
 function card(p){
   const hora=new Date(p.criado_em).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
   const itens=(p.itens||[]).map(i=>{
@@ -328,9 +355,11 @@ function card(p){
   if(p.status==="entregue"||p.status==="cancelado")acts.push(`<button class="btn" onclick="mudar('${p.id}','aguardando_pagamento')">↩ Reabrir</button>`);
   if(p.status==="cancelado")acts.push(`<button class="btn cx" onclick="excluir('${p.id}')">🗑 Excluir</button>`);
   if(p.status==="pago"||p.status==="entregue")acts.push(`<button class="btn" onclick="imprimirPedido('${p.id}')">🖨️ Imprimir</button>`);
+  const cel=String(p.celular||"").replace(/\D/g,"");
+  if(cel&&(p.status==="pago"||p.status==="entregue"))acts.push(`<button class="btn pay" onclick="pedirAval('${p.id}')">💬 Pedir avaliação</button>`);
   acts.push(`<button class="btn" onclick="copiar('${p.id}')">📋 Copiar via delivery</button>`);
   return `<div class="card ${p.status}">
-    <div class="top"><div><div class="num">Nº ${esc(p.numero)} · ${esc(p.cliente)}</div><div class="sub">${hora} · ${esc(p.pagamento||"")}</div></div>
+    <div class="top"><div><div class="num">Nº ${esc(p.numero)} · ${esc(p.cliente)}</div><div class="sub">${hora} · ${esc(p.pagamento||"")}${cel?` · <a href="https://wa.me/55${cel}" target="_blank" rel="noopener" style="color:#ffc21a">📱 ${esc(fmtCel(cel))}</a>`:""}</div></div>
     <span class="badge ${p.status}">${NOME[p.status]}</span></div>
     <div class="total">${brl(p.total)}</div>
     <div class="itens">${itens}</div>
@@ -339,8 +368,14 @@ function card(p){
     <div class="acts">${acts.join("")}</div></div>`;
 }
 async function mudar(id,st){
-  try{await rpc("popeye_mudar_status",{p_senha:SENHA,p_id:id,p_status:st});if(estados)estados.set(id,st);toast(st==="pago"?"Pagamento confirmado ✅":"Atualizado");load(false)}
-  catch(e){toast("Erro ao atualizar. Tente de novo.")}
+  // Ao marcar ENTREGUE: abre o WhatsApp do cliente com o link da avaliação (aba aberta já no clique, para o navegador não bloquear).
+  const ped=(rows||[]).find(x=>x.id===id);
+  const url=(st==="entregue"&&ped&&ped.status!=="entregue")?avalUrl(ped):null;
+  let w=null;if(url){try{w=window.open("","_blank")}catch(e){}}
+  try{await rpc("popeye_mudar_status",{p_senha:SENHA,p_id:id,p_status:st});if(estados)estados.set(id,st);
+    if(url){if(w){w.location.href=url}else{window.open(url,"_blank")}}
+    toast(st==="pago"?"Pagamento confirmado ✅":(url?"Entregue ✅ — envie a avaliação no WhatsApp":"Atualizado"));load(false)}
+  catch(e){if(w)try{w.close()}catch(_){}toast("Erro ao atualizar. Tente de novo.")}
 }
 async function excluir(id){
   if(!confirm("Excluir este pedido cancelado de vez? Não dá para desfazer."))return;

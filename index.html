@@ -1990,8 +1990,8 @@ window.PAY_URL="https://pwsherzzgfjxaoarapgf.supabase.co/functions/v1/ip-criar-l
       if(!avaliavel(nome)){if(t)t.remove();return}
       var m=medias[nome],ok=m&&m.qtd>=3,txt;
       if(ok){var n=Math.round(m.media),st="";for(var i=1;i<=5;i++)st+=i<=n?"★":"☆";
-        txt='<span class="stars">'+st+'</span> '+String(m.media).replace(".",",")+' <small>('+m.qtd+' avaliações)</small>'}
-      else txt='<span class="stars">☆☆☆☆☆</span> <small>Seja o primeiro a avaliar</small>';
+        txt='<span class="stars">'+st+'</span> '+String(m.media).replace(".",",")+' <small>('+m.qtd+' Avaliações)</small>'}
+      else txt='<span class="stars">☆☆☆☆☆</span> <small>Avaliações</small>';
       if(!t){t=document.createElement("div");t.className="starTag";var ds=card.querySelector(".desc")||card.querySelector(".price");card.insertBefore(t,ds?ds.nextSibling:h.nextSibling)}
       if(t.innerHTML!==txt)t.innerHTML=txt;
     });

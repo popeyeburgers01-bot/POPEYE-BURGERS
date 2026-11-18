@@ -1973,7 +1973,7 @@ window.PAY_URL="https://pwsherzzgfjxaoarapgf.supabase.co/functions/v1/ip-criar-l
 })();
 </script>
 <style>
-.starTag{display:block;margin:2px 0 8px;font-size:14px;font-weight:700;color:#ffc21a}.starTag .stars{letter-spacing:2px;font-size:16px}
+.starTag{display:block;margin:8px 0 10px;font-size:14px;font-weight:700;color:#ffc21a}.starTag .stars{letter-spacing:2px;font-size:16px}
 .starTag small{color:#c9d1d8;font-weight:600}
 </style>
 <script>
@@ -1992,7 +1992,7 @@ window.PAY_URL="https://pwsherzzgfjxaoarapgf.supabase.co/functions/v1/ip-criar-l
       if(ok){var n=Math.round(m.media),st="";for(var i=1;i<=5;i++)st+=i<=n?"★":"☆";
         txt='<span class="stars">'+st+'</span> '+String(m.media).replace(".",",")+' <small>('+m.qtd+' avaliações)</small>'}
       else txt='<span class="stars">☆☆☆☆☆</span> <small>Seja o primeiro a avaliar</small>';
-      if(!t){t=document.createElement("div");t.className="starTag";var pr=card.querySelector(".price");card.insertBefore(t,pr?pr.nextSibling:h.nextSibling)}
+      if(!t){t=document.createElement("div");t.className="starTag";var ds=card.querySelector(".desc")||card.querySelector(".price");card.insertBefore(t,ds?ds.nextSibling:h.nextSibling)}
       if(t.innerHTML!==txt)t.innerHTML=txt;
     });
   }

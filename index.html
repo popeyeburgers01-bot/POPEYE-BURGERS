@@ -355,10 +355,10 @@ setInterval(loadStock,120000);
     return 6;
   }
   function fee(km){
-    if(km<=2)return 2.99;
-    if(km<=4)return 5.99;
+    if(km<=2)return 1.99;
+    if(km<=4)return 4.99;
     if(km<=6)return 8.99;
-    if(km<=8)return 10.00;
+    if(km<=8)return 10.99;
     if(km<=10)return 12.99;
     if(km<=MAX_DELIVERY_KM)return 14.99;
     return null;
@@ -761,7 +761,7 @@ setInterval(loadStock,120000);
       if(typeof window.closeO==="function")window.closeO();
     };
 
-    // Pagamento online (InfinitePay): grava o pedido, pede o link ao servidor e leva o cliente para pagar.
+    // Pagamento online (Pagar.me): grava o pedido, pede o link ao servidor e leva o cliente para pagar.
     const pagarOnline=async function(){
       const btn=document.querySelector('#order .ok');
       const txtBtn=btn?btn.textContent:"";
@@ -1842,11 +1842,11 @@ document.addEventListener("change",function(e){if(e.target&&e.target.name==="pay
 })();
 </script>
 <script>
-/* ===== Pagamento online (InfinitePay) =====
+/* ===== Pagamento online (Pagar.me / Stone) =====
    Para LIGAR: troque false por true na linha abaixo e publique o arquivo.
    Desligado, o site continua no fluxo atual (Pix manual + WhatsApp). */
 window.PAGAMENTO_ONLINE=true;
-window.PAY_URL="https://pwsherzzgfjxaoarapgf.supabase.co/functions/v1/ip-criar-link";
+window.PAY_URL="https://pwsherzzgfjxaoarapgf.supabase.co/functions/v1/pagarme-criar-link";
 (function(){
   var SB="https://pwsherzzgfjxaoarapgf.supabase.co/rest/v1/rpc/";
   var KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3c2hlcnp6Z2ZqeGFvYXJhcGdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5MzU4OTUsImV4cCI6MjEwNzUxMTg5NX0.dKIJUclhb5mk1EJK2526cbyhgenhP0Jk-V90GPk_kN8";
@@ -1892,7 +1892,7 @@ window.PAY_URL="https://pwsherzzgfjxaoarapgf.supabase.co/functions/v1/ip-criar-l
     function msgZap(){
       var t=textoPed;
       if(t){
-        t=t.replace(/🟡 \*Status:\* AGUARDANDO PAGAMENTO/,"🟢 *Status:* PAGO ONLINE ✅").replace(/\*Pagamento:\* PIX/,"*Pagamento:* ONLINE (InfinitePay) - PAGO");
+        t=t.replace(/🟡 \*Status:\* AGUARDANDO PAGAMENTO/,"🟢 *Status:* PAGO ONLINE ✅").replace(/\*Pagamento:\* PIX/,"*Pagamento:* ONLINE (Pagar.me) - PAGO");
         t="✅ *PAGAMENTO ONLINE CONFIRMADO*\n\n"+t;
       }else t="Olá! Acabei de pagar o pedido Nº "+numero+" pelo site.";
       return WA+"?text="+encodeURIComponent(t);
